@@ -482,6 +482,35 @@ select.inp { appearance: none; background-image: none; }
   background: rgba(230,172,92,.12); border: 1px solid rgba(230,172,92,.4); color: var(--amber-2); font-weight: 700; }
 .realtip b { color: var(--amber-2); }
 
+/* ------- 마번 1~12 숫자 그리드 ------- */
+.num-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.numchip { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-3);
+  color: var(--text); font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; }
+.numchip.active { background: var(--grad-amber); color: #2a1a0c; border-color: transparent; }
+.numchip:active { transform: scale(.94); }
+
+/* ------- 브레인 분석 행 ------- */
+.rtime { font-size: 12px; font-weight: 700; color: var(--amber-2); margin-left: 6px; }
+.brank { display: flex; align-items: center; gap: 11px; padding: 9px 0; border-top: 1px solid var(--line); }
+.brank.top .bnm { color: var(--text); }
+.brank .no { width: 30px; height: 30px; flex: none; font-size: 14px; }
+.binfo { flex: 1; min-width: 0; }
+.bnm { font-size: 14px; font-weight: 800; }
+.btags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.btag { font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: rgba(230,172,92,.15); color: var(--amber-2); }
+.bconf { flex: none; font-size: 13px; font-weight: 900; color: var(--amber-2); }
+
+/* ------- 배당률 입력 행 ------- */
+.mult-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.mult-lbl { flex: 1; font-size: 14px; font-weight: 700; }
+.mult-inp { flex: none; width: 120px; padding: 11px 12px; }
+
+/* ------- 결과 대기 pill ------- */
+.roi-pill.pend { background: rgba(230,172,92,.16); color: var(--amber-2); cursor: pointer; border: 1px solid rgba(230,172,92,.4); }
+
+/* 인라인 아이콘 크기 보정 (카드 내 텍스트 옆 아이콘) */
+.card--glow .row svg { width: 18px; height: 18px; vertical-align: -3px; }
+
 </style>
 </head>
 <body>
@@ -526,226 +555,1411 @@ const ICON = {
 function icon(name) { return ICON[name] || ''; }
 
 
+/* 자동 생성: 2026-08-09 경마지 17경주 사전분석 (analyze_races.py) */
+const PRERACES = [
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 1,
+  "label": "서울 1R",
+  "distance": "1000m",
+  "grade": "혼4등급  루키 남3/북2 성별오픈　별정A　",
+  "start": "10:35",
+  "ranked": [
+   {
+    "no": 5,
+    "name": "에이케이준",
+    "conf": 95,
+    "tags": [
+     "거리 최고기록 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "불타오르네",
+    "conf": 92,
+    "tags": [
+     "레이팅 1위",
+     "막판 스퍼트 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "빅토리라이프",
+    "conf": 67,
+    "tags": [
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "마이티하이트",
+    "conf": 67,
+    "tags": [
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "마이뮤직",
+    "conf": 67,
+    "tags": []
+   },
+   {
+    "no": 9,
+    "name": "대한의영웅",
+    "conf": 65,
+    "tags": []
+   },
+   {
+    "no": 4,
+    "name": "나르샤럭키",
+    "conf": 64,
+    "tags": []
+   },
+   {
+    "no": 6,
+    "name": "엠파이어스타",
+    "conf": 62,
+    "tags": [
+     "막판 스퍼트 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "5번 에이케이준 — 거리 최고기록 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
+   "1번 불타오르네 — 레이팅 1위, 막판 스퍼트 1위. 연/복승 짝으로 좋아요.",
+   "2번 빅토리라이프까지 삼복승 그림. 복병은 7번 마이티하이트."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 2,
+  "label": "서울 2R",
+  "distance": "1200m",
+  "grade": "국6등급  루키 2세 성별오픈　별정A　R0~",
+  "start": "11:00",
+  "ranked": [
+   {
+    "no": 6,
+    "name": "걸작마루",
+    "conf": 95,
+    "tags": [
+     "거리 최고기록 1위",
+     "속도지수 1위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "스타플레이",
+    "conf": 93,
+    "tags": [
+     "복승률 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "나르샤루나",
+    "conf": 69,
+    "tags": []
+   },
+   {
+    "no": 8,
+    "name": "블리츠카라",
+    "conf": 68,
+    "tags": [
+     "최근1년 상금 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "비트스타",
+    "conf": 65,
+    "tags": [
+     "초반 스피드 1위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "케이삭스",
+    "conf": 63,
+    "tags": [
+     "막판 스퍼트 1위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "우리의기쁨",
+    "conf": 59,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "6번 걸작마루 — 거리 최고기록 1위, 속도지수 1위, 초반 스피드 2위. 축으로 추천!",
+   "9번 스타플레이 — 복승률 1위, 최근1년 상금 1위. 연/복승 짝으로 좋아요.",
+   "3번 나르샤루나까지 삼복승 그림. 복병은 8번 블리츠카라."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 1,
+  "label": "부경 1R",
+  "distance": "1000m",
+  "grade": "국6등급 2세 성별오픈 루키　별정A",
+  "start": "11:25",
+  "ranked": [
+   {
+    "no": 6,
+    "name": "오아시스희망",
+    "conf": 95,
+    "tags": [
+     "복승률 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "히어로히트",
+    "conf": 91,
+    "tags": [
+     "거리 최고기록 1위",
+     "초반 스피드 1위",
+     "속도지수 1위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "모닝아리아",
+    "conf": 89,
+    "tags": [
+     "막판 스퍼트 1위",
+     "거리 최고기록 2위",
+     "최근1년 상금 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "6번 오아시스희망 — 복승률 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
+   "8번 히어로히트 — 거리 최고기록 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
+   "9번 모닝아리아까지 삼복승 그림."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 3,
+  "label": "서울 3R",
+  "distance": "1800m",
+  "grade": "국6등급  연령오픈 성별오픈　별정A　R0~0",
+  "start": "12:05",
+  "ranked": [
+   {
+    "no": 7,
+    "name": "파워풀아크틱",
+    "conf": 95,
+    "tags": [
+     "복승률 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "신천하트",
+    "conf": 88,
+    "tags": [
+     "거리 최고기록 1위",
+     "초반 스피드 1위",
+     "속도지수 1위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "관악산위시미",
+    "conf": 76,
+    "tags": []
+   },
+   {
+    "no": 1,
+    "name": "누리으뜸",
+    "conf": 75,
+    "tags": [
+     "거리 최고기록 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "브리도에픽",
+    "conf": 71,
+    "tags": [
+     "최근6개월 상금 2위",
+     "초반 스피드 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "서폭챗",
+    "conf": 66,
+    "tags": [
+     "막판 스퍼트 1위",
+     "최근1년 상금 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "리더스파트너",
+    "conf": 58,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "7번 파워풀아크틱 — 복승률 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
+   "4번 신천하트 — 거리 최고기록 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
+   "5번 관악산위시미까지 삼복승 그림. 복병은 1번 누리으뜸."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 2,
+  "label": "부경 2R",
+  "distance": "1400m",
+  "grade": "국6등급 연령오픈 성별오픈　별정A",
+  "start": "12:45",
+  "ranked": [
+   {
+    "no": 3,
+    "name": "매직트리",
+    "conf": 95,
+    "tags": [
+     "복승률 1위",
+     "최근6개월 상금 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "스피드범프",
+    "conf": 90,
+    "tags": [
+     "최근1년 상금 1위",
+     "복승률 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "미스코코",
+    "conf": 89,
+    "tags": [
+     "거리 최고기록 1위",
+     "막판 스퍼트 1위",
+     "속도지수 1위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "원더풀밴드",
+    "conf": 68,
+    "tags": [
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "매직오브아트",
+    "conf": 63,
+    "tags": [
+     "초반 스피드 1위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "라스트부활",
+    "conf": 58,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "3번 매직트리 — 복승률 1위, 최근6개월 상금 1위, 거리 최고기록 2위. 축으로 추천!",
+   "2번 스피드범프 — 최근1년 상금 1위, 복승률 2위. 연/복승 짝으로 좋아요.",
+   "8번 미스코코까지 삼복승 그림. 복병은 4번 원더풀밴드."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 4,
+  "label": "서울 4R",
+  "distance": "1200m",
+  "grade": "국5등급  연령오픈 성별오픈　핸디캡　R1~3",
+  "start": "13:10",
+  "ranked": [
+   {
+    "no": 6,
+    "name": "영광의스카이",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "거리 승률 1위",
+     "속도지수 1위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "로열호프케이",
+    "conf": 77,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "내길의에이스",
+    "conf": 73,
+    "tags": [
+     "최근1년 상금 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "글로리앤아너",
+    "conf": 73,
+    "tags": [
+     "거리 최고기록 1위",
+     "거리 승률 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "피엔에스날라",
+    "conf": 70,
+    "tags": [
+     "최근1년 상금 1위",
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "블랙스펙터",
+    "conf": 67,
+    "tags": [
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "컴플리트퓨처",
+    "conf": 63,
+    "tags": [
+     "승률 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "어플리트런",
+    "conf": 62,
+    "tags": [
+     "초반 스피드 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "6번 영광의스카이 — 레이팅 1위, 거리 승률 1위, 속도지수 1위. 축으로 추천!",
+   "8번 로열호프케이 — 승률 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
+   "2번 내길의에이스까지 삼복승 그림. 복병은 3번 글로리앤아너."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 3,
+  "label": "부경 3R",
+  "distance": "1600m",
+  "grade": "국5등급 연령오픈 성별오픈　핸디캡　R1~35",
+  "start": "13:35",
+  "ranked": [
+   {
+    "no": 3,
+    "name": "용비짱",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "승률 1위",
+     "복승률 1위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "퍼펙트한",
+    "conf": 72,
+    "tags": [
+     "속도지수 1위",
+     "복승률 2위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "월드고트",
+    "conf": 70,
+    "tags": [
+     "승률 2위",
+     "거리 승률 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "투투플라잉",
+    "conf": 69,
+    "tags": [
+     "레이팅 2위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "드르쿰다",
+    "conf": 64,
+    "tags": [
+     "최근1년 상금 1위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "원더풀포춘",
+    "conf": 60,
+    "tags": [
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "퀸더골드",
+    "conf": 60,
+    "tags": [
+     "거리 최고기록 1위",
+     "초반 스피드 1위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "섬싱엘스",
+    "conf": 60,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "3번 용비짱 — 레이팅 1위, 승률 1위, 복승률 1위. 축으로 추천!",
+   "5번 퍼펙트한 — 속도지수 1위, 복승률 2위. 연/복승 짝으로 좋아요.",
+   "7번 월드고트까지 삼복승 그림. 복병은 9번 투투플라잉."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 5,
+  "label": "서울 5R",
+  "distance": "1200m",
+  "grade": "국5등급  연령오픈 성별오픈　핸디캡　R1~3",
+  "start": "14:00",
+  "ranked": [
+   {
+    "no": 9,
+    "name": "파사퀸",
+    "conf": 95,
+    "tags": [
+     "레이팅 2위",
+     "승률 2위",
+     "최근1년 상금 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "세인트위너",
+    "conf": 92,
+    "tags": [
+     "최근1년 상금 1위",
+     "거리 최고기록 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "어디든지",
+    "conf": 89,
+    "tags": [
+     "거리 최고기록 1위",
+     "속도지수 1위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "오송의별",
+    "conf": 87,
+    "tags": []
+   },
+   {
+    "no": 8,
+    "name": "파이널축제",
+    "conf": 86,
+    "tags": [
+     "레이팅 1위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "스테핑스톤",
+    "conf": 80,
+    "tags": [
+     "승률 1위",
+     "복승률 1위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "순간의파이터",
+    "conf": 74,
+    "tags": [
+     "최근6개월 상금 1위",
+     "복승률 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "아모스스타",
+    "conf": 73,
+    "tags": [
+     "초반 스피드 1위"
+    ]
+   }
+  ],
+  "comments": [
+   "9번 파사퀸 — 레이팅 2위, 승률 2위, 최근1년 상금 2위. 축으로 추천!",
+   "7번 세인트위너 — 최근1년 상금 1위, 거리 최고기록 2위. 연/복승 짝으로 좋아요.",
+   "6번 어디든지까지 삼복승 그림. 복병은 2번 오송의별."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 4,
+  "label": "부경 4R",
+  "distance": "1800m",
+  "grade": "국5등급 연령오픈 성별오픈　핸디캡　R1~35",
+  "start": "14:25",
+  "ranked": [
+   {
+    "no": 9,
+    "name": "바벨트로페오",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "거리 최고기록 1위",
+     "최근1년 상금 1위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "경복아토스",
+    "conf": 85,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "초반 스피드 1위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "스타포스",
+    "conf": 84,
+    "tags": [
+     "거리 승률 1위",
+     "속도지수 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "닥터솔라",
+    "conf": 72,
+    "tags": [
+     "최근1년 상금 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "스토미데이",
+    "conf": 68,
+    "tags": [
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "판타스틱보스",
+    "conf": 66,
+    "tags": [
+     "승률 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "챔프의시대",
+    "conf": 64,
+    "tags": [
+     "막판 스퍼트 1위",
+     "복승률 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "유림스카이",
+    "conf": 62,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "9번 바벨트로페오 — 레이팅 1위, 거리 최고기록 1위, 최근1년 상금 1위. 축으로 추천!",
+   "3번 경복아토스 — 승률 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
+   "1번 스타포스까지 삼복승 그림. 복병은 2번 닥터솔라."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 6,
+  "label": "서울 6R",
+  "distance": "1400m",
+  "grade": "국5등급  연령오픈 성별오픈　핸디캡　R1~3",
+  "start": "14:50",
+  "ranked": [
+   {
+    "no": 5,
+    "name": "스위트송",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "승률 1위",
+     "거리 승률 1위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "타이거불패",
+    "conf": 92,
+    "tags": [
+     "최근1년 상금 1위",
+     "초반 스피드 1위",
+     "막판 스퍼트 1위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "한강판타스틱",
+    "conf": 80,
+    "tags": [
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "스트롱보스",
+    "conf": 71,
+    "tags": [
+     "거리 최고기록 1위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "원더풀폭스",
+    "conf": 70,
+    "tags": [
+     "승률 2위",
+     "거리 승률 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "금성퀸",
+    "conf": 67,
+    "tags": [
+     "복승률 1위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "카인드큐피드",
+    "conf": 64,
+    "tags": [
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "케이엔스톰",
+    "conf": 60,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "5번 스위트송 — 레이팅 1위, 승률 1위, 거리 승률 1위. 축으로 추천!",
+   "9번 타이거불패 — 최근1년 상금 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
+   "2번 한강판타스틱까지 삼복승 그림. 복병은 1번 스트롱보스."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 5,
+  "label": "부경 5R",
+  "distance": "1800m",
+  "grade": "혼3등급 연령오픈 성별오픈　핸디캡　R1~65",
+  "start": "15:15",
+  "ranked": [
+   {
+    "no": 9,
+    "name": "인디타이거",
+    "conf": 95,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "거리 승률 1위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "네버기브업",
+    "conf": 84,
+    "tags": [
+     "최근1년 상금 1위",
+     "레이팅 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "월드위너스맨",
+    "conf": 81,
+    "tags": [
+     "레이팅 1위",
+     "거리 최고기록 1위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "하늘만점",
+    "conf": 77,
+    "tags": [
+     "승률 2위",
+     "거리 승률 2위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "더베스트에버",
+    "conf": 68,
+    "tags": [
+     "속도지수 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "캡틴골드",
+    "conf": 62,
+    "tags": []
+   },
+   {
+    "no": 8,
+    "name": "벌마의에이스",
+    "conf": 62,
+    "tags": [
+     "복승률 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "서부비전",
+    "conf": 60,
+    "tags": [
+     "최근1년 상금 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "9번 인디타이거 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
+   "2번 네버기브업 — 최근1년 상금 1위, 레이팅 2위. 연/복승 짝으로 좋아요.",
+   "3번 월드위너스맨까지 삼복승 그림. 복병은 6번 하늘만점."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 7,
+  "label": "서울 7R",
+  "distance": "1800m",
+  "grade": "국4등급  연령오픈 성별오픈　핸디캡　R1~5",
+  "start": "15:40",
+  "ranked": [
+   {
+    "no": 6,
+    "name": "블랙사탕",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "승률 1위",
+     "복승률 1위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "하이폴리",
+    "conf": 83,
+    "tags": [
+     "초반 스피드 1위",
+     "거리 승률 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "골드뭉치",
+    "conf": 81,
+    "tags": [
+     "거리 최고기록 1위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "희망밴드",
+    "conf": 81,
+    "tags": [
+     "최근6개월 상금 1위",
+     "최근1년 상금 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "영원자이언트",
+    "conf": 76,
+    "tags": [
+     "속도지수 1위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "무적함대",
+    "conf": 75,
+    "tags": [
+     "승률 2위",
+     "복승률 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "원평코드",
+    "conf": 71,
+    "tags": [
+     "레이팅 2위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "어퍼핸드",
+    "conf": 60,
+    "tags": [
+     "막판 스퍼트 1위"
+    ]
+   }
+  ],
+  "comments": [
+   "6번 블랙사탕 — 레이팅 1위, 승률 1위, 복승률 1위. 축으로 추천!",
+   "8번 하이폴리 — 초반 스피드 1위, 거리 승률 2위. 연/복승 짝으로 좋아요.",
+   "9번 골드뭉치까지 삼복승 그림. 복병은 4번 희망밴드."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 6,
+  "label": "부경 6R",
+  "distance": "1400m",
+  "grade": "혼4등급 연령오픈 성별오픈　핸디캡　R0~50",
+  "start": "16:05",
+  "ranked": [
+   {
+    "no": 4,
+    "name": "미스스나이퍼",
+    "conf": 95,
+    "tags": [
+     "레이팅 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "올더베스트",
+    "conf": 88,
+    "tags": [
+     "거리 승률 1위",
+     "초반 스피드 1위",
+     "복승률 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "대길의꿈",
+    "conf": 82,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "거리 승률 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "레몬트리",
+    "conf": 76,
+    "tags": [
+     "레이팅 2위",
+     "초반 스피드 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "브라운팰컨",
+    "conf": 73,
+    "tags": [
+     "거리 최고기록 1위",
+     "속도지수 1위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "케러비언베이",
+    "conf": 64,
+    "tags": [
+     "승률 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "세광최강",
+    "conf": 61,
+    "tags": []
+   },
+   {
+    "no": 7,
+    "name": "밀크데이",
+    "conf": 58,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "4번 미스스나이퍼 — 레이팅 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
+   "5번 올더베스트 — 거리 승률 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
+   "2번 대길의꿈까지 삼복승 그림. 복병은 8번 레몬트리."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 8,
+  "label": "서울 8R",
+  "distance": "1800m",
+  "grade": "혼3등급  연령오픈 성별오픈　핸디캡　R1~6",
+  "start": "16:30",
+  "ranked": [
+   {
+    "no": 2,
+    "name": "라이브스타",
+    "conf": 95,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "거리 승률 1위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "허쉬대보",
+    "conf": 78,
+    "tags": [
+     "승률 2위",
+     "거리 최고기록 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "킹다이아",
+    "conf": 75,
+    "tags": [
+     "레이팅 1위",
+     "복승률 2위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "슈퍼선더",
+    "conf": 73,
+    "tags": [
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "나소챗",
+    "conf": 71,
+    "tags": [
+     "최근1년 상금 1위",
+     "막판 스퍼트 1위",
+     "거리 승률 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "굿해피",
+    "conf": 61,
+    "tags": []
+   },
+   {
+    "no": 8,
+    "name": "마이머닝스",
+    "conf": 61,
+    "tags": [
+     "최근6개월 상금 2위",
+     "막판 스퍼트 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "울트라선더",
+    "conf": 58,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "2번 라이브스타 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
+   "3번 허쉬대보 — 승률 2위, 거리 최고기록 2위. 연/복승 짝으로 좋아요.",
+   "6번 킹다이아까지 삼복승 그림. 복병은 7번 슈퍼선더."
+  ]
+ },
+ {
+  "region": "부산경남",
+  "date": "2026-08-09",
+  "raceNo": 7,
+  "label": "부경 7R",
+  "distance": "1200m",
+  "grade": "2등급 연령오픈 성별오픈　핸디캡　R1~80",
+  "start": "16:55",
+  "ranked": [
+   {
+    "no": 1,
+    "name": "레이스맨",
+    "conf": 95,
+    "tags": [
+     "거리 최고기록 1위",
+     "복승률 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "마가리타",
+    "conf": 90,
+    "tags": [
+     "레이팅 1위",
+     "속도지수 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "오픈스카이",
+    "conf": 86,
+    "tags": [
+     "막판 스퍼트 1위",
+     "승률 2위",
+     "최근6개월 상금 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "사막의꽃",
+    "conf": 85,
+    "tags": [
+     "거리 승률 1위",
+     "초반 스피드 1위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "클러치위너",
+    "conf": 84,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "벌마의엔젤",
+    "conf": 69,
+    "tags": [
+     "거리 승률 2위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "윈드위너",
+    "conf": 66,
+    "tags": [
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "블랙스프링",
+    "conf": 66,
+    "tags": [
+     "막판 스퍼트 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "1번 레이스맨 — 거리 최고기록 1위, 복승률 2위, 속도지수 2위. 축으로 추천!",
+   "8번 마가리타 — 레이팅 1위, 속도지수 1위. 연/복승 짝으로 좋아요.",
+   "9번 오픈스카이까지 삼복승 그림. 복병은 4번 사막의꽃."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 9,
+  "label": "서울 9R",
+  "distance": "1600m",
+  "grade": "국3등급  연령오픈 암　핸디캡　R1~65",
+  "start": "17:25",
+  "ranked": [
+   {
+    "no": 3,
+    "name": "캐치레이스",
+    "conf": 95,
+    "tags": [
+     "거리 최고기록 1위",
+     "최근1년 상금 1위",
+     "최근6개월 상금 1위"
+    ]
+   },
+   {
+    "no": 2,
+    "name": "바로다나은",
+    "conf": 92,
+    "tags": [
+     "레이팅 1위",
+     "복승률 1위",
+     "막판 스퍼트 1위"
+    ]
+   },
+   {
+    "no": 6,
+    "name": "퍼지스텝",
+    "conf": 90,
+    "tags": [
+     "승률 1위",
+     "복승률 2위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "남산벨트",
+    "conf": 78,
+    "tags": [
+     "거리 승률 1위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 5,
+    "name": "그레이스루트",
+    "conf": 70,
+    "tags": []
+   },
+   {
+    "no": 8,
+    "name": "명진불패",
+    "conf": 70,
+    "tags": [
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "캡틴타임",
+    "conf": 68,
+    "tags": [
+     "초반 스피드 1위",
+     "레이팅 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "서머파티",
+    "conf": 61,
+    "tags": [
+     "최근6개월 상금 2위"
+    ]
+   }
+  ],
+  "comments": [
+   "3번 캐치레이스 — 거리 최고기록 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
+   "2번 바로다나은 — 레이팅 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
+   "6번 퍼지스텝까지 삼복승 그림. 복병은 7번 남산벨트."
+  ]
+ },
+ {
+  "region": "서울",
+  "date": "2026-08-09",
+  "raceNo": 10,
+  "label": "서울 10R",
+  "distance": "1200m",
+  "grade": "1등급  연령오픈 성별오픈　핸디캡　R1~14",
+  "start": "17:55",
+  "ranked": [
+   {
+    "no": 2,
+    "name": "한센브레이싱",
+    "conf": 95,
+    "tags": [
+     "승률 1위",
+     "복승률 1위",
+     "거리 승률 1위"
+    ]
+   },
+   {
+    "no": 3,
+    "name": "지구라트",
+    "conf": 81,
+    "tags": [
+     "레이팅 1위",
+     "최근1년 상금 1위",
+     "복승률 2위"
+    ]
+   },
+   {
+    "no": 4,
+    "name": "제이에스로드",
+    "conf": 80,
+    "tags": [
+     "거리 승률 2위",
+     "초반 스피드 2위"
+    ]
+   },
+   {
+    "no": 1,
+    "name": "대한질주",
+    "conf": 78,
+    "tags": [
+     "레이팅 2위",
+     "속도지수 2위"
+    ]
+   },
+   {
+    "no": 7,
+    "name": "거센반격",
+    "conf": 72,
+    "tags": [
+     "속도지수 1위",
+     "거리 최고기록 2위"
+    ]
+   },
+   {
+    "no": 8,
+    "name": "마이티룩",
+    "conf": 71,
+    "tags": []
+   },
+   {
+    "no": 5,
+    "name": "용암세상",
+    "conf": 66,
+    "tags": [
+     "승률 2위"
+    ]
+   },
+   {
+    "no": 9,
+    "name": "매글데이",
+    "conf": 61,
+    "tags": []
+   }
+  ],
+  "comments": [
+   "2번 한센브레이싱 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
+   "3번 지구라트 — 레이팅 1위, 최근1년 상금 1위. 연/복승 짝으로 좋아요.",
+   "4번 제이에스로드까지 삼복승 그림. 복병은 1번 대한질주."
+  ]
+ }
+];
+
+
 /* =========================================================
-   경마브레인 — 더미 데이터 & 앱 상태
+   경마브레인 — 데이터 & 상태 (v2: 실제 기록 저장 기반)
    ========================================================= */
 
 const DB = {
-  // 통계: 실전 / 모의  ×  누적 / 최신(참여 날짜별)
-  //  회 = 참여한 날짜 수(하루=1회), 경주 = 그 안에서 참여한 경주 수
-  //  byType: 배팅방법별 [참여수, 적중수]  (연승 3개 걸어 맞춰도 1참여·적중1)
-  stats: {
-    real: {
-      total: {
-        sessions: 12, races: 42, bet: 386000, payout: 431500,
-        byType: { win:[20,8], place:[15,9], quinella:[5,2], exacta:[2,0], qplace:[0,0], trio:[0,0] },
-      },
-      // 날짜별 상세: raceList만 적으면 아래에서 bet/payout/races/byType 자동 계산
-      dates: [
-        { date:'2026-08-03', raceList: [
-          { r:'서울 7R', bets:[ {type:'win',amount:5000,horses:[2],hit:true,mult:3.1,get:15500}, {type:'place',amount:3000,horses:[4],hit:true,mult:1.4,get:4200} ] },
-          { r:'서울 9R', bets:[ {type:'quinella',amount:6000,horses:[1,3],hit:false,mult:0,get:0}, {type:'win',amount:4000,horses:[5],hit:false,mult:0,get:0} ] },
-          { r:'부산 3R', bets:[ {type:'place',amount:4000,horses:[2],hit:true,mult:1.6,get:6400}, {type:'win',amount:2000,horses:[6],hit:false,mult:0,get:0} ] },
-        ]},
-        { date:'2026-07-27', raceList: [
-          { r:'서울 5R', bets:[ {type:'win',amount:8000,horses:[3],hit:false,mult:0,get:0}, {type:'place',amount:4000,horses:[1],hit:true,mult:1.5,get:6000} ] },
-          { r:'서울 8R', bets:[ {type:'place',amount:5000,horses:[2],hit:true,mult:1.3,get:6500}, {type:'quinella',amount:3000,horses:[2,4],hit:false,mult:0,get:0} ] },
-        ]},
-        { date:'2026-07-20', raceList: [
-          { r:'제주 4R', bets:[ {type:'place',amount:6000,horses:[4],hit:true,mult:1.8,get:10800}, {type:'quinella',amount:5000,horses:[2,6],hit:true,mult:4.2,get:21000} ] },
-        ]},
-        { date:'2026-07-13', raceList: [
-          { r:'서울 3R', bets:[ {type:'win',amount:5000,horses:[1],hit:true,mult:4.0,get:20000}, {type:'place',amount:3000,horses:[2],hit:true,mult:1.2,get:3600} ] },
-          { r:'서울 6R', bets:[ {type:'quinella',amount:6000,horses:[4,6],hit:false,mult:0,get:0}, {type:'win',amount:4000,horses:[7],hit:false,mult:0,get:0} ] },
-          { r:'서울 11R', bets:[ {type:'trio',amount:5000,horses:[2,4,6],hit:true,mult:6.5,get:32500} ] },
-        ]},
-      ],
-    },
-    mock: {
-      total: {
-        sessions: 24, races: 128, bet: 1240000, payout: 1489000,
-        byType: { win:[60,26], place:[40,22], quinella:[18,7], exacta:[6,1], qplace:[3,1], trio:[1,0] },
-      },
-      dates: [
-        { date:'2026-08-04', raceList: [
-          { r:'서울 2R', bets:[ {type:'win',amount:10000,horses:[4],hit:true,mult:2.5,get:25000}, {type:'place',amount:5000,horses:[1],hit:true,mult:1.4,get:7000} ] },
-          { r:'서울 5R', bets:[ {type:'quinella',amount:8000,horses:[2,3],hit:false,mult:0,get:0} ] },
-        ]},
-        { date:'2026-07-28', raceList: [
-          { r:'부산 4R', bets:[ {type:'win',amount:9000,horses:[6],hit:false,mult:0,get:0}, {type:'place',amount:6000,horses:[3],hit:true,mult:1.6,get:9600} ] },
-        ]},
-        { date:'2026-07-21', raceList: [
-          { r:'제주 7R', bets:[ {type:'place',amount:7000,horses:[2],hit:true,mult:1.7,get:11900}, {type:'quinella',amount:5000,horses:[2,4],hit:true,mult:3.8,get:19000} ] },
-        ]},
-      ],
-    },
-  },
-
-  regions: ['서울', '부산경남', '제주'],
-
-  // 샘플 출주표 (경마지 사진/PDF 업로드 결과라고 가정)
-  raceCard: {
-    region: '서울',
-    raceNo: 7,
-    distance: '1400m',
-    track: '더트 · 양호',
-    grade: '국5등급',
-    // expert = 경마지에 실린 전문가 예상 순위 (쓰여진 순서 1~6, 없으면 null)
-    horses: [
-      { no: 1, name: '천둥의질주', jockey: '김용근', weight: 54, age: 4, odds: 6.2,  recent: ['3','1','5'], expert: 4 },
-      { no: 2, name: '브라운스타', jockey: '문세영', weight: 56, age: 5, odds: 3.4,  recent: ['1','2','1'], expert: 1 },
-      { no: 3, name: '초원의바람', jockey: '이찬호', weight: 53, age: 3, odds: 9.8,  recent: ['4','6','3'], expert: 6 },
-      { no: 4, name: '황금발굽',   jockey: '정도윤', weight: 55, age: 4, odds: 4.1,  recent: ['2','1','4'], expert: 2 },
-      { no: 5, name: '다크호스',   jockey: '서승운', weight: 52, age: 6, odds: 15.5, recent: ['7','5','8'], expert: null },
-      { no: 6, name: '질풍가도',   jockey: '유현명', weight: 57, age: 5, odds: 5.7,  recent: ['1','3','2'], expert: 3 },
-      { no: 7, name: '별빛노래',   jockey: '장추열', weight: 51, age: 3, odds: 22.0, recent: ['6','9','7'], expert: null },
-      { no: 8, name: '카라멜포니', jockey: '김혜선', weight: 53, age: 4, odds: 8.3,  recent: ['5','2','3'], expert: 5 },
-    ],
-  },
+  regions: ['서울', '부산경남'],
 
   // 배팅 타입
   betTypes: [
-    { id: 'win',      name: '단승식',   desc: '1착 맞히기' },
-    { id: 'place',    name: '연승식',   desc: '3착 이내(출주두수↓ 2착 이내)' },
-    { id: 'quinella', name: '복승식',   desc: '1·2착 조합 (순서 무관)' },
-    { id: 'exacta',   name: '쌍승식',   desc: '1·2착 순서까지' },
-    { id: 'qplace',   name: '복연승식', desc: '지정 2두가 3착 이내' },
-    { id: 'trio',     name: '삼복승식', desc: '1·2·3착 조합 (순서 무관)' },
+    { id: 'win',      name: '단승식',   desc: '1착 맞히기',            need: 1 },
+    { id: 'place',    name: '연승식',   desc: '3착 이내',              need: 1 },
+    { id: 'quinella', name: '복승식',   desc: '1·2착 조합 (순서 무관)', need: 2 },
+    { id: 'exacta',   name: '쌍승식',   desc: '1·2착 순서까지',        need: 2 },
+    { id: 'qplace',   name: '복연승식', desc: '지정 2두가 3착 이내',    need: 2 },
+    { id: 'trio',     name: '삼복승식', desc: '1·2·3착 조합 (순서 무관)', need: 3 },
   ],
+
+  // 사전 분석된 경주 (js/preraces.js의 PRERACES에서 로드)
+  preRaces: (typeof PRERACES !== 'undefined' ? PRERACES : []),
 };
 
-/* ---------- 날짜별 합계 자동 계산 (raceList → bet/payout/races/byType) ---------- */
-['real', 'mock'].forEach(mode => {
-  DB.stats[mode].dates.forEach(d => {
-    let bet = 0, payout = 0; const bt = {};
-    d.raceList.forEach(rc => {
-      let rb = 0, rp = 0;
-      rc.bets.forEach(b => {
-        rb += b.amount; rp += b.get;
-        bt[b.type] = bt[b.type] || [0, 0];
-        bt[b.type][0]++; if (b.hit) bt[b.type][1]++;
-      });
-      rc.bet = rb; rc.payout = rp;
-      bet += rb; payout += rp;
-    });
-    d.bet = bet; d.payout = payout; d.races = d.raceList.length; d.byType = bt;
-  });
-});
-
-/* =========================================================
-   미리 분석해둔 실제 경주 (경마지 PDF 사전 분석 결과)
-   input/ 폴더의 경마지를 분석해 여기에 추가 → 앱에서 해당 경주 선택 시 표시
-   ========================================================= */
-DB.preRaces = [
-  {
-    region: '부산경남', date: '2026-08-07', raceNo: 8,
-    distance: '1400m', track: '더트', grade: '혼4등급', real: true,
-    // 마번 순 (부담중량 kg, expert = 경마지 레이팅 순위 1~6)
-    horses: [
-      { no: 1,  name: '오아시스영',   jockey: '이동하', weight: 53.5, age: 5, odds: 4.5,  recent: ['5','4','1'],  expert: 6 },
-      { no: 2,  name: '하늘신화',     jockey: '다실바', weight: 57.0, age: 5, odds: 2.8,  recent: ['2','1','2'],  expert: 2 },
-      { no: 3,  name: '비케이스피릿', jockey: '진겸',   weight: 52.5, age: 3, odds: 9.0,  recent: ['1','3','2'],  expert: null },
-      { no: 4,  name: '배다리보석',   jockey: '신형철', weight: 52.5, age: 4, odds: 22.0, recent: ['6','5','8'],  expert: null },
-      { no: 5,  name: '서귀오름',     jockey: '다나카', weight: 56.5, age: 5, odds: 7.0,  recent: ['4','3','5'],  expert: 3 },
-      { no: 6,  name: '무등산',       jockey: '송경윤', weight: 54.5, age: 7, odds: 11.0, recent: ['4','7','3'],  expert: 5 },
-      { no: 7,  name: '리치트리',     jockey: '박재이', weight: 56.0, age: 4, odds: 5.0,  recent: ['3','1','5'],  expert: 4 },
-      { no: 8,  name: '스마트샤말',   jockey: '최시대', weight: 52.5, age: 4, odds: 15.0, recent: ['3','5','4'],  expert: null },
-      { no: 9,  name: '금아인피니티', jockey: '손경민', weight: 54.5, age: 7, odds: 8.5,  recent: ['7','5','9'],  expert: 1 },
-      { no: 10, name: '차밍스텔라',   jockey: '이성재', weight: 52.5, age: 3, odds: 18.0, recent: ['5','9','10'], expert: null },
-      { no: 11, name: '스타파크',     jockey: '정도윤', weight: 52.5, age: 6, odds: 30.0, recent: ['9','10','10'],expert: null },
-    ],
-    analysis: {
-      order: [2, 1, 7, 5, 9, 3, 6, 8, 10, 4, 11],
-      conf:  { 2:92, 1:86, 7:82, 5:74, 9:68, 3:63, 6:58, 8:54, 10:50, 4:46, 11:42 },
-      comments: [
-        '2번 하늘신화 — 속도지수 117·1400m 최고기록 1:24.4·막판 스퍼트 1위(종반 200m 13.0). 능력 최상위, 축으로 강력 추천! 🐴',
-        '1번 오아시스영 — 승률 28.6%·복승률 42.9% 모두 1위인 꾸준함의 대명사. 부담 53.5kg로 가벼워 복승·복연승 짝으로 최고예요.',
-        '7번 리치트리 — 1400m 승률 28.6%(거리 1위)·최근 1년 상금 1위. 삼복승 그림엔 꼭 포함하세요.',
-        '복병 6번 무등산 — 속도지수 108(2위). 인기 빠지면 복승 한 방! 반대로 레이팅 1위 9번 금아인피니티는 최근 폼이 아쉬워요.',
-      ],
-    },
-  },
-];
-// preRace → prediction 객체 생성 (renderPrediction과 동일한 형태)
-DB.preRaces.forEach(r => {
-  const byNo = n => r.horses.find(h => h.no === n);
-  const ranked = r.analysis.order.map((no, i) => ({ ...byNo(no), rank: i + 1, confidence: r.analysis.conf[no] }));
-  r.prediction = {
-    ranked, top3: ranked.slice(0, 3), comments: r.analysis.comments, real: true,
-    note: `실제 경마지 · 부경 ${r.raceNo}R · ${r.distance} · ${r.grade}`,
-  };
-});
-function findPreRace(region, raceNo, date) {
-  return DB.preRaces.find(r => r.region === region && r.raceNo === raceNo && (!date || r.date === date)) || null;
-}
-
-/* ---------- 파생 계산 ---------- */
-function roi(s)  { return s.bet ? Math.round((s.payout / s.bet) * 100) : 0; }   // 회수율 = 배당÷배팅
-function net(s)  { return s.payout - s.bet; }
-function hitRate(bt) { return bt && bt[0] ? Math.round((bt[1] / bt[0]) * 100) : null; } // 배팅방법 적중률
-// 전체 적중률 (모든 배팅방법 합산)
-function overallHit(byType) {
-  let e = 0, h = 0;
-  Object.values(byType || {}).forEach(([en, hi]) => { e += en; h += hi; });
-  return { entries: e, hits: h, rate: e ? Math.round(h / e * 100) : 0 };
-}
-// 배팅 타입별 필요 마번 수
-function betNeed(id) { return ({ quinella: 2, exacta: 2, qplace: 2, trio: 3 })[id] || 1; }
-// 결과로 배팅 정산 (적중 여부·배수·획득금액) — 프로토타입 휴리스틱
-function evalBet(bet, result, card) {
-  const { first, second, third } = result;
-  const top3 = [first, second, third].filter(x => x != null);
-  const H = bet.horses;
-  const oddsOf = no => (card.horses.find(h => h.no === no) || {}).odds || 5;
-  let hit = false, mult = 0;
-  switch (bet.type) {
-    case 'win':      hit = H[0] === first; mult = oddsOf(H[0]); break;
-    case 'place':    hit = top3.includes(H[0]); mult = Math.max(1.2, oddsOf(H[0]) * 0.35); break;
-    case 'quinella': hit = H.length === 2 && H.every(x => [first, second].includes(x)); mult = (oddsOf(H[0]) + oddsOf(H[1])) * 0.6; break;
-    case 'exacta':   hit = H[0] === first && H[1] === second; mult = (oddsOf(H[0]) + oddsOf(H[1])) * 1.1; break;
-    case 'qplace':   hit = H.length === 2 && H.every(x => top3.includes(x)); mult = (oddsOf(H[0]) + oddsOf(H[1])) * 0.35; break;
-    case 'trio':     hit = H.length === 3 && H.every(x => top3.includes(x)); mult = (oddsOf(H[0]) + oddsOf(H[1]) + oddsOf(H[2])) * 0.9; break;
-  }
-  mult = Math.round(mult * 10) / 10;
-  return { hit, mult: hit ? mult : 0, get: hit ? Math.round(bet.amount * mult) : 0 };
-}
-
-// 통계 표시용 정규화: 누적이면 total, 최신이면 선택한 날짜 → {sessions,races,bet,payout,byType}
-function statView(mode, span, date) {
-  const m = DB.stats[mode];
-  if (span === 'total') return m.total;
-  const d = date ? m.dates.find(x => x.date === date) : m.dates[0];
-  return d ? { sessions: 1, races: d.races, bet: d.bet, payout: d.payout, byType: d.byType } : m.total;
-}
-
-/* ---------- 포니가 만드는 예측 (더미 AI) ---------- */
-function predict(card) {
-  // 배당 + 최근 성적을 섞어 점수화 (프로토타입용 휴리스틱)
-  const scored = card.horses.map(h => {
-    const oddsScore = 1 / h.odds;                     // 배당 낮을수록 ↑
-    const formScore = h.recent
-      .map((r, i) => (r === '취' ? 0 : (10 - Math.min(+r, 10)) * (1 - i * 0.25)))
-      .reduce((a, b) => a + b, 0);
-    const raw = oddsScore * 60 + formScore * 1.6;
-    return { ...h, raw };
-  }).sort((a, b) => b.raw - a.raw);
-
-  const max = scored[0].raw, min = scored[scored.length - 1].raw;
-  const ranked = scored.map((h, i) => ({
-    ...h,
-    rank: i + 1,
-    confidence: Math.round(55 + ((h.raw - min) / (max - min || 1)) * 40), // 55~95%
-  }));
-
-  const [t1, t2, t3] = ranked;
-  const comments = [
-    `${t1.no}번 ${t1.name}가 최근 폼과 배당 모두 안정적이에요. 축으로 강력 추천! 🐴`,
-    `${t2.no}번 ${t2.name}는 복병 후보. ${t1.no}번과 묶으면 복승 가치가 좋아요.`,
-    `${t3.no}번 ${t3.name}까지가 삼복승 그림. 인기 하위 ${ranked[ranked.length-1].no}번은 이번엔 패스가 무난해요.`,
-  ];
-
-  return { ranked, top3: [t1, t2, t3], comments, note: `${card.region} ${card.raceNo}R · ${card.distance} · ${card.track}` };
-}
+function betType(id) { return DB.betTypes.find(t => t.id === id) || DB.betTypes[0]; }
+function betNeed(id) { return betType(id).need; }
 
 /* ---------- 저장소 (file:// 등에서 막혀도 안전) ---------- */
 const store = (() => {
@@ -760,140 +1974,193 @@ const store = (() => {
   };
 })();
 
+/* ---------- 착순 판정 (배수는 사용자가 입력) ---------- */
+function evalHit(bet, result) {
+  const { first, second, third } = result || {};
+  const top2 = [first, second].filter(x => x != null);
+  const top3 = [first, second, third].filter(x => x != null);
+  const H = bet.horses;
+  switch (bet.type) {
+    case 'win':      return H[0] === first;
+    case 'place':    return top3.includes(H[0]);
+    case 'quinella': return H.length === 2 && H.every(x => top2.includes(x));
+    case 'exacta':   return H[0] === first && H[1] === second;
+    case 'qplace':   return H.length === 2 && H.every(x => top3.includes(x));
+    case 'trio':     return H.length === 3 && H.every(x => top3.includes(x));
+    default:         return false;
+  }
+}
+// 배팅 정산: {hit, mult, get}
+function evalBet(bet, result) {
+  const hit = evalHit(bet, result);
+  const mult = hit ? (result.mults && +result.mults[bet.idx] || 0) : 0;
+  return { hit, mult, get: hit ? Math.round((bet.amount || 0) * mult) : 0 };
+}
+// 레코드 정산 요약
+function recSummary(rec) {
+  const bet = rec.bets.reduce((s, b) => s + (b.amount || 0), 0);
+  let payout = 0, hits = 0;
+  if (rec.settled) rec.bets.forEach((b, i) => {
+    const e = evalBet({ ...b, idx: i }, rec.result);
+    if (e.hit) { hits++; payout += e.get; }
+  });
+  return { bet, payout, hits, net: payout - bet, roi: bet ? Math.round(payout / bet * 100) : 0 };
+}
+
+/* ---------- 파생 계산 ---------- */
+function roi(s)  { return s.bet ? Math.round((s.payout / s.bet) * 100) : 0; }
+function net(s)  { return s.payout - s.bet; }
+function hitRate(bt) { return bt && bt[0] ? Math.round((bt[1] / bt[0]) * 100) : null; }
+
+// 기록 집계 (모드별, settled만) → {sessions,races,bet,payout,byType}
+function recStats(mode) {
+  const recs = State.records.filter(r => r.mode === mode && r.settled);
+  const dates = new Set(recs.map(r => r.date));
+  const byType = {};
+  let bet = 0, payout = 0;
+  recs.forEach(r => {
+    const s = recSummary(r); bet += s.bet; payout += s.payout;
+    r.bets.forEach((b, i) => {
+      byType[b.type] = byType[b.type] || [0, 0];
+      byType[b.type][0]++;
+      if (evalHit(b, r.result)) byType[b.type][1]++;
+    });
+  });
+  return { sessions: dates.size, races: recs.length, bet, payout, byType };
+}
+function overallHit(byType) {
+  let e = 0, h = 0;
+  Object.values(byType || {}).forEach(([en, hi]) => { e += en; h += hi; });
+  return { entries: e, hits: h, rate: e ? Math.round(h / e * 100) : 0 };
+}
+// 모드별 기록을 날짜별로 그룹 (최신 날짜 먼저)
+function recDates(mode) {
+  const map = {};
+  State.records.filter(r => r.mode === mode).forEach(r => { (map[r.date] = map[r.date] || []).push(r); });
+  return Object.keys(map).sort((a, b) => a < b ? 1 : -1).map(date => ({ date, recs: map[date] }));
+}
+
 /* ---------- 앱 상태 ---------- */
 const State = {
   user: { name: store.get('rb.name') || '' },
-  // 레이스 참여 진행 중 데이터
-  draft: {
-    mode: 'real',        // 'real' | 'mock' (실전 디폴트)
-    date: '',
-    region: '서울',
-    raceNo: 7,
-    card: null,          // 업로드/입력된 출주표
-    prediction: null,
-    bets: [],            // 여러 배팅 [{type,horses,amount}]
-    slips: [],           // 마권 사진 (최대 10장)
-    result: null,        // {first,second,third,photo}
+  records: JSON.parse(store.get('rb.records') || '[]'),
+  draft: null,
+  resetDraft() {
+    this.draft = { mode: 'real', date: todayISO(), region: '서울', raceNo: 1, bets: [], slips: [], result: null, recordId: null };
   },
   saveName(name) {
     this.user.name = name.trim();
     if (this.user.name) store.set('rb.name', this.user.name);
   },
-  resetDraft() {
-    this.draft = { mode: 'real', date: '', region: '서울', raceNo: 7, card: null, prediction: null, bets: [], slips: [], result: null };
+  _saveRecords() { store.set('rb.records', JSON.stringify(this.records)); },
+  addRecord(rec) {
+    rec.id = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+    rec.ts = Date.now();
+    this.records.push(rec);
+    this._saveRecords();
+    return rec.id;
   },
-  // 날짜 고정(pin) — 저장소에 유지
-  pinned: JSON.parse(store.get('rb.pinned') || '[]'),
-  isPinned(date) { return this.pinned.includes(date); },
-  togglePin(date) {
-    const i = this.pinned.indexOf(date);
-    if (i >= 0) this.pinned.splice(i, 1); else this.pinned.push(date);
-    store.set('rb.pinned', JSON.stringify(this.pinned));
+  getRecord(id) { return this.records.find(r => r.id === id); },
+  updateRecord(id, patch) {
+    const r = this.getRecord(id);
+    if (r) { Object.assign(r, patch); this._saveRecords(); }
   },
 };
 
 /* ---------- 포맷 유틸 ---------- */
-const won = n => (n < 0 ? '-' : '') + '₩' + Math.abs(n).toLocaleString('ko-KR');
+const won = n => (n < 0 ? '-' : '') + '₩' + Math.abs(Math.round(n || 0)).toLocaleString('ko-KR');
 const pct = n => n + '%';
 const todayISO = () => new Date().toISOString().slice(0, 10);
+const fmtMD = iso => { const p = String(iso).split('-'); return p.length === 3 ? `${+p[1]}/${+p[2]}` : iso; };
+
+State.resetDraft();
 
 
 /* =========================================================
-   경마브레인 — 뷰 & 라우터
+   경마브레인 — 뷰 & 라우터 (v2)
+   탭: 홈 · 브레인(사전분석) · 레이스(배팅) · 결과(결과분석) · 내정보
    ========================================================= */
 
 const app = document.getElementById('app');
 const $  = (sel, el = document) => el.querySelector(sel);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+function el(html) { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
 
 /* ---------- 라우터 ---------- */
 const routes = {};
 function route(name, fn) { routes[name] = fn; }
-function go(name, opts) { location.hash = '#/' + name + (opts?.q ? '?' + opts.q : ''); }
+function go(name, opts) { location.hash = '#/' + name + (opts && opts.q ? '?' + opts.q : ''); }
 function currentRoute() {
-  const raw = location.hash.replace(/^#\//, '') || '';
-  const [name] = raw.split('?');
+  const raw = location.hash.replace(/^#\//, '');
+  const name = raw.split('?')[0];
   return name || (State.user.name ? 'home' : 'onboarding');
+}
+function getQuery() {
+  const raw = location.hash.replace(/^#\//, '');
+  const q = raw.split('?')[1] || ''; const o = {};
+  q.split('&').forEach(kv => { const [k, v] = kv.split('='); if (k) o[k] = decodeURIComponent(v || ''); });
+  return o;
 }
 window.addEventListener('hashchange', render);
 
-/* ---------- 셸 렌더 ---------- */
 function render() {
-  const name = currentRoute();
-  const view = routes[name] || routes.home;
+  const view = routes[currentRoute()] || routes.home;
   app.innerHTML = '';
   app.appendChild(view());
-  const scr = $('.screen', app);
-  if (scr) scr.scrollTop = 0;
+  const scr = $('.screen', app); if (scr) scr.scrollTop = 0;
 }
 
-/* ---------- 셸 헬퍼 ---------- */
+/* ---------- 셸 ---------- */
 function shell({ title, sub, back, tab, body, nav = true, brand = false }) {
   const wrap = document.createElement('div');
   wrap.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;';
   const titleBlock = brand
-    ? `<div class="logo"><span class="logo-mark">${icon('horseshoe')}</span>
-         <span class="logo-txt">경마브레인</span></div>
+    ? `<div class="logo"><span class="logo-mark">${icon('horseshoe')}</span><span class="logo-txt">경마브레인</span></div>
        ${sub ? `<div class="sub" style="margin-top:2px">${esc(sub)}</div>` : ''}`
     : `<h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}`;
   wrap.innerHTML = `
     <header class="topbar">
       ${back ? `<button class="iconbtn" data-back>${icon('back')}</button>` : ''}
-      <div>
-        ${titleBlock}
-      </div>
+      <div>${titleBlock}</div>
     </header>
     <div class="screen ${nav ? '' : 'no-nav'}"></div>
-    ${nav ? tabbar(tab) : ''}
-  `;
+    ${nav ? tabbar(tab) : ''}`;
   $('.screen', wrap).appendChild(body);
   if (back) $('[data-back]', wrap).onclick = () => (typeof back === 'function' ? back() : history.back());
   return wrap;
 }
-
 function tabbar(active) {
   const tabs = [
     ['home', '홈', 'home'],
+    ['brain', '브레인', 'spark'],
     ['setup', '레이스', 'flag'],
-    ['stats', '통계', 'chart'],
+    ['results', '결과', 'chart'],
     ['profile', '내정보', 'user'],
   ];
   return `<nav class="tabbar">${tabs.map(([r, l, ic]) =>
-    `<button data-tab="${r}" class="${active === r ? 'active' : ''}">${icon(ic)}<span>${l}</span></button>`
-  ).join('')}</nav>`;
+    `<button data-tab="${r}" class="${active === r ? 'active' : ''}">${icon(ic)}<span>${l}</span></button>`).join('')}</nav>`;
 }
+app.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) go(t.dataset.tab); });
 
-// 탭 클릭 위임
-app.addEventListener('click', e => {
-  const t = e.target.closest('[data-tab]');
-  if (t) go(t.dataset.tab === 'home' ? 'home' : t.dataset.tab);
-});
-
-function el(html) { const d = document.createElement('div'); d.innerHTML = html.trim(); return d.firstElementChild; }
-function toast(msg) {
-  const t = el(`<div class="toast">${esc(msg)}</div>`);
-  app.appendChild(t);
-  setTimeout(() => t.remove(), 1900);
-}
+function toast(msg) { const t = el(`<div class="toast">${esc(msg)}</div>`); app.appendChild(t); setTimeout(() => t.remove(), 1900); }
+const typeName = id => betType(id).name;
+const regShort = r => (r === '서울' ? '서울' : '부경');
 
 /* =========================================================
-   1) 온보딩
+   온보딩
    ========================================================= */
 route('onboarding', () => {
   const box = document.createElement('div');
   box.className = 'onb';
   box.innerHTML = `
-    <div class="mascot float">${pony({ size: 150, mood: 'cheer' })}</div>
+    <div class="mascot float">${pony({ size: 150 })}</div>
     <div class="brandline">${icon('horseshoe')} RACEBRAIN · 경마브레인</div>
     <h1>경마브레인에<br>오신 것을 환영합니다</h1>
     <p class="lead">데이터로 경주를 읽어주는 써포터 포니<br><b style="color:var(--amber-2)">브레인</b>이 함께할게요.</p>
-    <div class="field">
-      <label>이름을 입력해주세요</label>
-      <input class="inp" id="nameInput" placeholder="예) 나다나" autocomplete="off" maxlength="12">
-    </div>
+    <div class="field"><label>이름을 입력해주세요</label>
+      <input class="inp" id="nameInput" placeholder="예) 나다나" autocomplete="off" maxlength="12"></div>
     <button class="btn" id="startBtn">시작하기 ${icon('arrow')}</button>
-    <button class="skip" id="skipBtn">건너뛰기</button>
-  `;
+    <button class="skip" id="skipBtn">건너뛰기</button>`;
   const input = $('#nameInput', box);
   const start = () => { State.saveName(input.value || '경마러'); go('home'); };
   $('#startBtn', box).onclick = start;
@@ -904,585 +2171,195 @@ route('onboarding', () => {
 });
 
 /* =========================================================
-   2) 홈 / 통계 대시보드
+   홈
    ========================================================= */
-let statMode = 'real';   // real | mock  (실전 디폴트)
-let statSpan = 'total';  // total | latest  (누적 디폴트)
-let statDate = null;     // 최신 모드에서 선택한 날짜
-let statExpand = false;  // 적중률 배팅방법 펼치기
-
-function curDate() {
-  const dates = DB.stats[statMode].dates;
-  if (statDate && dates.some(d => d.date === statDate)) return statDate;
-  const pin = dates.find(d => State.isPinned(d.date));
-  return pin ? pin.date : dates[0].date;
+function summaryCard(mode) {
+  const s = recStats(mode);
+  if (!s.races) return el(`<div class="card" style="text-align:center;padding:26px 18px">
+    <div class="muted" style="font-size:14px;line-height:1.6">아직 <b style="color:var(--text-2)">${mode==='real'?'실전':'모의'}</b> 기록이 없어요.<br>레이스에 참여하면 여기에 성적이 쌓여요! 🐎</div></div>`);
+  const oh = overallHit(s.byType);
+  return el(`<div class="hero"><div class="glowline"></div>
+    <div class="cnt" style="margin-bottom:12px"><b>${s.sessions}</b><span class="u">회</span><span class="dot">·</span><b>${s.races}</b><span class="u">경주</span></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="k">배팅금액</div><div class="v">${won(s.bet)}</div></div>
+      <div class="stat"><div class="k">배당금액</div><div class="v">${won(s.payout)}</div>
+        <div class="delta ${net(s)>=0?'up':'down'}">${net(s)>=0?'▲':'▼'} ${won(Math.abs(net(s)))}</div></div>
+      <div class="stat big"><div class="row between"><div class="k">회수율</div><div class="v" style="font-size:18px">${roi(s)}<small>%</small></div></div></div>
+      <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
+    </div></div>`);
 }
-const fmtDate = iso => { const [, m, d] = iso.split('-'); return `${+m}/${+d}`; };
-
-function statBlock() {
-  const span = statSpan;
-  const date = span === 'latest' ? curDate() : null;
-  const v = statView(statMode, span, date);
-  const r = roi(v), n = net(v);
-  const pos = Math.max(0, Math.min(200, r)) / 2;   // 0~100 (50 = 본전 100%)
-  const up = r >= 100;
-  const oh = overallHit(v.byType);
-
-  // 배팅방법별 적중 (참여 많은 순)
-  const rows = DB.betTypes.map(t => {
-    const bt = v.byType[t.id] || [0, 0];
-    return { name: t.name.replace('식', ''), entries: bt[0], hits: bt[1], rate: hitRate(bt) };
-  }).sort((a, b) => b.entries - a.entries);
-  const top = rows.slice(0, 3), rest = rows.slice(3);
-  const rowHTML = rw => `
-    <div class="hit-row">
-      <span class="hit-name">${rw.name}</span>
-      <div class="hit-bar ${rw.rate==null?'none':''}"><i style="width:${rw.rate||0}%"></i></div>
-      <span class="hit-val ${rw.rate==null?'none':''}">${rw.rate!=null?rw.rate+'%':'참여없음'}${rw.entries?` <small>(${rw.hits}/${rw.entries})</small>`:''}</span>
-    </div>`;
-
-  // 최신: 참여 날짜 선택 + 고정
-  const dates = DB.stats[statMode].dates.slice().sort((a, b) => {
-    const pa = State.isPinned(a.date), pb = State.isPinned(b.date);
-    if (pa !== pb) return pa ? -1 : 1;
-    return a.date < b.date ? 1 : -1;
-  });
-  const dateUI = span === 'latest' ? `
-    <div class="date-row" id="dateRow">
-      ${dates.map(d => `<button class="date-chip ${d.date===date?'active':''}" data-date="${d.date}">${State.isPinned(d.date)?'<span class="pin">📌</span>':''}${fmtDate(d.date)}</button>`).join('')}
-    </div>
-    <button class="pinbtn ${State.isPinned(date)?'on':''}" data-pin="${date}">📌 ${State.isPinned(date)?'고정 해제':'이 날짜 고정'}</button>
-  ` : '';
-
-  return el(`
-    <div>
-      <div class="tabs" id="modeTabs">
-        <button class="tab ${statMode==='real'?'active':''}" data-m="real">실전</button>
-        <button class="tab ${statMode==='mock'?'active':''}" data-m="mock">모의</button>
-      </div>
-
-      <div class="hero">
-        <div class="glowline"></div>
-        <div class="row between" style="margin-bottom:14px">
-          <div class="seg" id="spanSeg" style="flex:1;max-width:170px">
-            <button data-s="total" class="${span==='total'?'active':''}">누적</button>
-            <button data-s="latest" class="${span==='latest'?'active':''}">최신</button>
-          </div>
-          <span class="badge ${statMode==='mock'?'badge--mock':''}">${statMode==='real'?'REAL':'MOCK'}</span>
-        </div>
-
-        ${dateUI}
-
-        <div class="cnt" style="margin:2px 0 2px">
-          <b>${v.sessions||1}</b><span class="u">회</span>
-          <span class="dot">·</span>
-          <b>${v.races}</b><span class="u">경주 참여</span>
-        </div>
-
-        <div class="stat-grid" style="margin-top:12px">
-          <div class="stat"><div class="k">배팅금액</div><div class="v">${won(v.bet)}</div></div>
-          <div class="stat"><div class="k">배당금액</div><div class="v">${won(v.payout)}</div>
-            <div class="delta ${n>=0?'up':'down'}">${n>=0?'▲':'▼'} ${won(Math.abs(n))}</div></div>
-        </div>
-
-        <div class="section-t" style="margin:18px 2px 8px">회수율 <span class="muted" style="font-weight:700">· 배당÷배팅</span></div>
-        <div class="roi">
-          <div class="roi-scale"><span>0%</span><span class="mid">본전 100%</span><span>200%+</span></div>
-          <div class="roi-track">
-            <div class="roi-fill ${up?'up':'down'}" style="${up?`left:50%;width:${pos-50}%`:`left:${pos}%;width:${50-pos}%`}"></div>
-            <div class="roi-zero"></div>
-            <div class="roi-knob" style="left:${pos}%"></div>
-          </div>
-          <div class="roi-val ${up?'up':'down'}">${r}% <small style="font-size:13px;color:var(--muted)">(${n>=0?'+':'-'}${won(Math.abs(n))})</small></div>
-        </div>
-
-        <div class="section-t" style="margin:18px 2px 6px">적중률 <span class="muted" style="font-weight:700">· 전체 ${oh.rate}% (${oh.hits}/${oh.entries})</span></div>
-        <div id="hitList">
-          ${top.map(rowHTML).join('')}
-          ${statExpand ? rest.map(rowHTML).join('') : ''}
-          ${rest.length ? `<button class="expand-btn" data-expand="1">${statExpand?'접기 ▲':`펼치기 ▾ · 나머지 ${rest.length}개`}</button>` : ''}
-        </div>
-      </div>
-    </div>
-  `);
-}
-
-function wireStat(holder) {
-  holder.addEventListener('click', e => {
-    const m = e.target.closest('[data-m]'), sp = e.target.closest('[data-s]'),
-          dt = e.target.closest('[data-date]'), pn = e.target.closest('[data-pin]'),
-          ex = e.target.closest('[data-expand]');
-    let re = false;
-    if (m) { statMode = m.dataset.m; statDate = null; re = true; }
-    if (sp) { statSpan = sp.dataset.s; re = true; }
-    if (dt) { statDate = dt.dataset.date; re = true; }
-    if (pn) { State.togglePin(pn.dataset.pin); re = true; }
-    if (ex) { statExpand = !statExpand; re = true; }
-    if (re) { holder.innerHTML = ''; holder.appendChild(statBlock()); }
-  });
-}
-
+let homeMode = 'real';
 route('home', () => {
   const body = document.createElement('div');
   const name = State.user.name || '경마러';
-
-  // 인사 말풍선 + 바로 아래 레이스 참여 CTA
-  const head = el(`
-    <div>
-      <div class="pony-line" style="margin-bottom:12px">
-        ${pony({ size: 66 })}
-        <div class="speech"><b>${esc(name)}</b>님, 어서오세요! 🐴<br>오늘 경주 분석, 저 <b>브레인</b>이 도와드릴게요.</div>
-      </div>
-      <button class="btn" id="joinBtn">${icon('flag')} 레이스 참여하기</button>
-    </div>
-  `);
+  const pre = DB.preRaces;
+  const head = el(`<div>
+    <div class="pony-line" style="margin-bottom:12px">${pony({ size: 66 })}
+      <div class="speech"><b>${esc(name)}</b>님, 어서오세요! 🐴<br>오늘 경주 분석, 저 <b>브레인</b>이 도와드릴게요.</div></div>
+    <button class="btn" id="joinBtn">${icon('flag')} 레이스 참여하기</button>
+  </div>`);
   $('#joinBtn', head).onclick = () => { State.resetDraft(); go('setup'); };
   body.appendChild(head);
 
-  const holder = document.createElement('div');
-  holder.style.marginTop = '24px';
-  holder.appendChild(statBlock());
-  body.appendChild(holder);
-  wireStat(holder);
+  if (pre.length) {
+    const b = el(`<div class="card card--glow" id="brainCard" style="margin-top:16px;cursor:pointer">
+      <div class="row between"><div><div style="font-weight:800">${icon('spark')} 브레인 분석 준비 완료</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">${pre[0].date} · ${pre.length}경주 예상순위</div></div>
+      <span style="color:var(--amber-2);font-weight:800">보기 ${icon('arrow')}</span></div></div>`);
+    b.onclick = () => go('brain');
+    body.appendChild(b);
+  }
+
+  body.appendChild(el(`<div class="section-t" style="margin-top:22px">내 성적 요약</div>`));
+  const seg = el(`<div class="seg" id="hmSeg" style="max-width:200px;margin-bottom:12px">
+    <button data-m="real" class="${homeMode==='real'?'active':''}">실전</button>
+    <button data-m="mock" class="${homeMode==='mock'?'active':''}">모의</button></div>`);
+  const holder = el('<div></div>');
+  holder.appendChild(summaryCard(homeMode));
+  seg.addEventListener('click', e => { const m = e.target.closest('[data-m]'); if (!m) return; homeMode = m.dataset.m;
+    seg.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === m)); holder.innerHTML = ''; holder.appendChild(summaryCard(homeMode)); });
+  body.appendChild(seg); body.appendChild(holder);
 
   return shell({ title: '경마브레인', brand: true, sub: `${name}님의 대시보드`, tab: 'home', body });
 });
 
 /* =========================================================
-   통계 탭 (홈과 동일 상세)
+   브레인 — 사전 분석된 경주 (날짜 → 라운드 → 분석)
    ========================================================= */
-let statStDate = null;   // 통계 탭에서 선택한 날짜
-let statOpenRace = null; // 펼친 경주 인덱스
-
-route('stats', () => {
-  const typeName = id => DB.betTypes.find(t => t.id === id).name;
+let brainOpen = null;
+route('brain', () => {
   const body = document.createElement('div');
-  body.innerHTML = `
-    <div class="tabs" id="modeTabs">
-      <button class="tab ${statMode==='real'?'active':''}" data-m="real">실전</button>
-      <button class="tab ${statMode==='mock'?'active':''}" data-m="mock">모의</button>
-    </div>
-    <div class="pony-line" style="margin-bottom:14px">
-      ${pony({ size: 52 })}
-      <div class="speech">참여한 <b>날짜</b>를 고르면, 그날 배팅한 경주별 성적을 보여드려요!</div>
-    </div>
-    <div class="section-t">참여 날짜</div>
-    <div class="date-row" id="dateRow"></div>
-    <div id="raceList"></div>
-  `;
+  body.appendChild(el(`<div class="pony-line" style="margin-bottom:14px">${pony({ size: 52 })}
+    <div class="speech">제가 미리 분석해둔 경주예요! 🧠<br>라운드를 누르면 <b>예상 순위</b>가 나와요.</div></div>`));
 
-  const dateRow = $('#dateRow', body), raceList = $('#raceList', body);
-
-  function currentDates() { return DB.stats[statMode].dates; }
-  function selDate() {
-    const ds = currentDates();
-    if (statStDate && ds.some(d => d.date === statStDate)) return statStDate;
-    return ds[0].date;
+  if (!DB.preRaces.length) {
+    body.appendChild(el(`<div class="card" style="text-align:center;padding:26px;color:var(--muted)">아직 분석된 경주가 없어요.</div>`));
+    return shell({ title: '브레인 분석', tab: 'brain', body });
   }
-  const fmt = iso => { const [y, m, d] = iso.split('-'); return `${+m}/${+d}`; };
-
-  function render() {
-    const ds = currentDates(); const sel = selDate();
-    dateRow.innerHTML = ds.map(d => `<button class="date-chip ${d.date===sel?'active':''}" data-date="${d.date}">${fmt(d.date)}</button>`).join('');
-    const day = ds.find(d => d.date === sel);
-    const dayRoi = roi(day);
-    raceList.innerHTML = `
-      <div class="card" style="margin:4px 0 6px;display:flex;justify-content:space-between;align-items:center">
-        <div><div class="muted" style="font-size:12px;font-weight:700">${sel} · ${day.races}경주</div>
-          <div style="font-size:15px;font-weight:800;margin-top:2px">배팅 ${won(day.bet)} → 배당 ${won(day.payout)}</div></div>
-        <div class="roi-pill ${dayRoi>=100?'up':'down'}">${dayRoi}%</div>
-      </div>
-      <div class="section-t">경주별 성적 <span class="muted" style="font-weight:700">· 탭하면 상세</span></div>
-      ${day.raceList.map((rc, i) => {
-        const rr = roi(rc); const open = statOpenRace === i;
-        const got = rc.bets.reduce((s, b) => s + b.get, 0);
-        return `
-        <div class="race-item ${open?'open':''}">
-          <button class="race-head" data-race="${i}">
-            <div>
-              <div class="race-name">${esc(rc.r)}</div>
-              <div class="muted" style="font-size:12px;margin-top:2px">배팅 ${won(rc.bet)} · ${rc.bets.length}건</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px">
-              <span class="roi-pill ${rr>=100?'up':'down'}">${rr}%</span>
-              <span class="chev">${open?'▲':'▼'}</span>
-            </div>
-          </button>
-          ${open ? `
-          <div class="race-detail">
-            <div class="btable">
-              <div class="btr bthead"><span>배팅방식</span><span>마번</span><span>배팅액</span><span>결과</span><span>획득</span></div>
-              ${rc.bets.map(b => `
-                <div class="btr ${b.hit?'hit':''}">
-                  <span>${typeName(b.type)}</span>
-                  <span>${b.horses.map(n=>n+'번').join(',')}</span>
-                  <span>${won(b.amount)}</span>
-                  <span class="${b.hit?'up':'muted'}">${b.hit?`적중 ${b.mult}배`:'미적중'}</span>
-                  <span class="${b.hit?'up':'muted'}" style="font-weight:800">${b.hit?'+'+won(b.get):'-'}</span>
-                </div>`).join('')}
-            </div>
-            <div class="race-sum"><span>회수율 ${rr}%</span><span class="${got-rc.bet>=0?'up':'down'}">순손익 ${got-rc.bet>=0?'+':'-'}${won(Math.abs(got-rc.bet))}</span></div>
-          </div>` : ''}
-        </div>`;
-      }).join('')}
-    `;
-    dateRow.querySelectorAll('[data-date]').forEach(b => b.onclick = () => { statStDate = b.dataset.date; statOpenRace = null; render(); });
-    raceList.querySelectorAll('[data-race]').forEach(b => b.onclick = () => {
-      const i = +b.dataset.race; statOpenRace = statOpenRace === i ? null : i; render();
-    });
-  }
-
-  $('#modeTabs', body).addEventListener('click', e => {
-    const m = e.target.closest('[data-m]'); if (!m) return;
-    statMode = m.dataset.m; statStDate = null; statOpenRace = null;
-    body.querySelectorAll('#modeTabs .tab').forEach(x => x.classList.toggle('active', x === m));
-    render();
+  // 날짜별 그룹 (preRaces는 시간순 정렬돼 있음)
+  const byDate = {};
+  DB.preRaces.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+  const list = el('<div></div>');
+  Object.keys(byDate).sort((a, b) => a < b ? 1 : -1).forEach(date => {
+    list.appendChild(el(`<div class="section-t">${date} · ${byDate[date].length}경주</div>`));
+    byDate[date].forEach(r => list.appendChild(brainRow(r)));
   });
+  body.appendChild(list);
 
-  render();
-  return shell({ title: '통계', sub: '경주별 배팅 성적', tab: 'stats', body });
+  function brainRow(r) {
+    const key = r.region + r.raceNo + r.date;
+    const open = brainOpen === key;
+    const t1 = r.ranked[0] || {};
+    const node = el(`<div class="race-item ${open?'open':''}">
+      <button class="race-head" data-k="${key}">
+        <div><div class="race-name">${regShort(r.region)} ${r.raceNo}R <span class="rtime">${r.start}</span></div>
+          <div class="muted" style="font-size:12px;margin-top:3px">${r.distance||''} · 축 ${t1.no}번 ${esc(t1.name||'')}</div></div>
+        <span class="chev">${open?'▲':'▼'}</span>
+      </button>
+      ${open ? brainDetail(r) : ''}</div>`);
+    $('[data-k]', node).onclick = () => { brainOpen = open ? null : key; render(); };
+    return node;
+  }
+  function brainDetail(r) {
+    return `<div class="race-detail">
+      ${r.ranked.slice(0, 6).map(h => `
+        <div class="brank ${h.rank<=3?'top':''}">
+          <div class="no r${h.rank<=3?h.rank:''}">${h.rank<=3?h.rank:h.no}</div>
+          <div class="binfo"><div class="bnm">${h.no}번 ${esc(h.name||'')}</div>
+            <div class="btags">${(h.tags||[]).map(t=>`<span class="btag">${esc(t)}</span>`).join('')||'<span class="muted" style="font-size:11px">지표 상위</span>'}</div></div>
+          <div class="bconf">${h.conf}%</div></div>`).join('')}
+      <div class="card card--glow" style="margin-top:10px">
+        ${(r.comments||[]).map(c=>`<div style="display:flex;gap:8px;padding:5px 0;font-size:13.5px;line-height:1.55"><span style="color:var(--amber)">▹</span><span>${esc(c)}</span></div>`).join('')}</div>
+      <div class="muted" style="font-size:11px;margin-top:10px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
+    </div>`;
+  }
+  // ranked에 rank 부여
+  DB.preRaces.forEach(r => r.ranked.forEach((h, i) => h.rank = i + 1));
+  return shell({ title: '브레인 분석', sub: '경마지 사전 분석', tab: 'brain', body });
 });
 
 /* =========================================================
-   내정보
-   ========================================================= */
-route('profile', () => {
-  const body = document.createElement('div');
-  const name = State.user.name || '경마러';
-  body.innerHTML = `
-    <div class="pony-line" style="margin:6px 0 18px">
-      ${pony({ size: 70, mood: 'wink' })}
-      <div class="speech">안녕하세요 <b>${esc(name)}</b>님!</div>
-    </div>
-    <div class="card">
-      <div class="field" style="margin-bottom:14px">
-        <label>이름</label>
-        <input class="inp" id="pfName" value="${esc(name)}" maxlength="12">
-      </div>
-      <button class="btn btn--ghost" id="saveName">이름 저장</button>
-    </div>
-    <div class="section-t">기록</div>
-    <div class="card">
-      <div class="kv"><span class="k">실전 누적 참여</span><span class="v">${DB.stats.real.total.sessions}회 · ${DB.stats.real.total.races}경주</span></div>
-      <div class="kv"><span class="k">모의 누적 참여</span><span class="v">${DB.stats.mock.total.sessions}회 · ${DB.stats.mock.total.races}경주</span></div>
-      <div class="kv"><span class="k">실전 누적 회수율</span><span class="v">${roi(DB.stats.real.total)}%</span></div>
-    </div>
-    <div style="margin-top:18px">
-      <button class="btn btn--ghost" id="resetOnb">온보딩 다시 보기</button>
-    </div>
-  `;
-  $('#saveName', body).onclick = () => { State.saveName($('#pfName', body).value || '경마러'); toast('저장했어요 🐴'); };
-  $('#resetOnb', body).onclick = () => { store.del('rb.name'); State.user.name=''; go('onboarding'); };
-  return shell({ title: '내 정보', tab: 'profile', body });
-});
-
-/* =========================================================
-   3) 레이스 참여 - 설정 (모의/실전 · 날짜 · 지역 · 경기)
+   레이스 — 경주 선택 (→ 배팅)
    ========================================================= */
 route('setup', () => {
   const d = State.draft;
-  if (!d.date) d.date = todayISO();
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="steps">
-      <div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-      <span class="lbl">1 / 4 · 레이스 설정</span>
-    </div>
-
-    <div class="pony-line" style="margin-bottom:16px">
-      ${pony({ size: 56 })}
-      <div class="speech">이제 신나는 레이스를 시작해봐요!</div>
-    </div>
+    <div class="steps"><div class="dot on"></div><div class="dot"></div><span class="lbl">1 / 2 · 경주 선택</span></div>
+    <div class="pony-line" style="margin-bottom:16px">${pony({ size: 56 })}
+      <div class="speech">배팅할 경주를 골라주세요!</div></div>
 
     <div class="section-t">레이스 종류</div>
     <div class="seg seg--pill" id="modePick">
       <button data-mode="real" class="${d.mode==='real'?'active':''}">🔥 실전 레이스</button>
-      <button data-mode="mock" class="${d.mode==='mock'?'active':''}">🎯 모의 레이스</button>
-    </div>
+      <button data-mode="mock" class="${d.mode==='mock'?'active':''}">🎯 모의 레이스</button></div>
 
     <div class="section-t">날짜 선택</div>
-    <div class="field">
-      <input class="inp" type="date" id="dateInp" value="${d.date}">
-    </div>
+    <div class="field"><input class="inp" type="date" id="dateInp" value="${d.date}"></div>
 
     <div class="section-t">경마장</div>
     <div class="chip-wrap" id="regionPick">
-      ${DB.regions.map(r=>`<button class="chip ${d.region===r?'active':''}" data-region="${r}">${r}</button>`).join('')}
-    </div>
+      ${DB.regions.map(r=>`<button class="chip ${d.region===r?'active':''}" data-region="${r}">${r}</button>`).join('')}</div>
 
     <div class="section-t">경주 번호</div>
     <div class="chip-wrap" id="racePick">
-      ${Array.from({length:11},(_,i)=>i+1).map(n=>`<button class="chip ${d.raceNo===n?'active':''}" data-race="${n}">${n}R</button>`).join('')}
-    </div>
+      ${Array.from({length:12},(_,i)=>i+1).map(n=>`<button class="chip ${d.raceNo===n?'active':''}" data-race="${n}">${n}R</button>`).join('')}</div>
 
-    <div class="realtip">✨ <b>부산경남 · 8R</b> (오늘, 2026-08-07)은 <b>실제 경마지 분석</b>이 준비돼 있어요!</div>
+    <div id="brainHint"></div>
 
-    <div style="margin-top:18px">
-      <button class="btn" id="next">분석하러 가기 ${icon('arrow')}</button>
-    </div>
-  `;
-  $('#modePick', body).addEventListener('click', e => {
-    const b = e.target.closest('[data-mode]'); if (!b) return;
-    d.mode = b.dataset.mode;
-    body.querySelectorAll('#modePick button').forEach(x=>x.classList.toggle('active', x===b));
-  });
-  $('#regionPick', body).addEventListener('click', e => {
-    const b = e.target.closest('[data-region]'); if (!b) return;
-    d.region = b.dataset.region;
-    body.querySelectorAll('#regionPick .chip').forEach(x=>x.classList.toggle('active', x===b));
-  });
-  $('#racePick', body).addEventListener('click', e => {
-    const b = e.target.closest('[data-race]'); if (!b) return;
-    d.raceNo = +b.dataset.race;
-    body.querySelectorAll('#racePick .chip').forEach(x=>x.classList.toggle('active', x===b));
-  });
-  $('#dateInp', body).onchange = e => d.date = e.target.value;
-  $('#next', body).onclick = () => go('input');
+    <div style="margin-top:22px"><button class="btn" id="next">${icon('coin')} 배팅하러 가기</button></div>`;
 
+  const hint = $('#brainHint', body);
+  function refreshHint() {
+    const pr = DB.preRaces.find(r => r.region === d.region && r.raceNo === d.raceNo && r.date === d.date);
+    hint.innerHTML = pr ? `<div class="realtip">🧠 이 경주(${regShort(d.region)} ${d.raceNo}R)는 <b>브레인 분석</b>이 있어요! 브레인 탭에서 확인하세요.</div>` : '';
+  }
+  $('#modePick', body).addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; d.mode = b.dataset.mode;
+    body.querySelectorAll('#modePick button').forEach(x=>x.classList.toggle('active', x===b)); });
+  $('#regionPick', body).addEventListener('click', e => { const b = e.target.closest('[data-region]'); if (!b) return; d.region = b.dataset.region;
+    body.querySelectorAll('#regionPick .chip').forEach(x=>x.classList.toggle('active', x===b)); refreshHint(); });
+  $('#racePick', body).addEventListener('click', e => { const b = e.target.closest('[data-race]'); if (!b) return; d.raceNo = +b.dataset.race;
+    body.querySelectorAll('#racePick .chip').forEach(x=>x.classList.toggle('active', x===b)); refreshHint(); });
+  $('#dateInp', body).onchange = e => { d.date = e.target.value; refreshHint(); };
+  $('#next', body).onclick = () => { d.bets = []; d.slips = []; d.result = null; d.recordId = null; go('betting'); };
+  refreshHint();
   return shell({ title: '레이스 참여', tab: 'setup', body, back: () => go('home') });
 });
 
 /* =========================================================
-   4) 정보 입력 (경마지 사진 / PDF 업로드 or 직접)
-   ========================================================= */
-route('input', () => {
-  const d = State.draft;
-  const body = document.createElement('div');
-  body.innerHTML = `
-    <div class="steps">
-      <div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div>
-      <span class="lbl">2 / 4 · 정보 입력</span>
-    </div>
-
-    <div class="pony-line" style="margin-bottom:16px">
-      ${pony({ size: 56, mood: 'thinking', glasses: true })}
-      <div class="speech"><b>${esc(d.region)} ${d.raceNo}R</b> 경마지를 올려주세요.<br>사진·PDF 다 좋아요. 제가 읽어드릴게요!</div>
-    </div>
-
-    <div class="drop" id="drop">
-      <div class="ic">${icon('camera')}</div>
-      <h4>경마지 사진 · PDF 업로드</h4>
-      <p>탭해서 선택하거나 파일을 끌어다 놓으세요</p>
-    </div>
-    <input type="file" id="fileInp" accept="image/*,application/pdf" hidden>
-
-    <div id="fileList"></div>
-
-    <div class="divider"></div>
-    <div class="row between" style="margin-bottom:10px">
-      <div class="section-t" style="margin:0">직접 입력도 가능</div>
-      <button class="btn btn--ghost btn--sm" id="sampleBtn">샘플 출주표 불러오기</button>
-    </div>
-    <p class="muted" style="font-size:13px;margin:0 4px 14px">
-      업로드가 어려우면 샘플 데이터로 바로 분석 흐름을 확인할 수 있어요.
-    </p>
-
-    <div id="cardPreview"></div>
-
-    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn" id="analyze" disabled>${icon('spark')} 예상 순위 보기</button>
-      <button class="btn btn--ghost" id="skip">건너뛰기 (바로 보기)</button>
-    </div>
-  `;
-
-  const drop = $('#drop', body), fileInp = $('#fileInp', body);
-  const fileList = $('#fileList', body), preview = $('#cardPreview', body), analyzeBtn = $('#analyze', body);
-
-  function loadCard(sourceLabel) {
-    const pre = findPreRace(d.region, d.raceNo, d.date);
-    if (pre) {
-      d.card = JSON.parse(JSON.stringify({ region: pre.region, raceNo: pre.raceNo, distance: pre.distance, track: pre.track, grade: pre.grade, horses: pre.horses }));
-      d.card.prediction = pre.prediction;   // 미리 분석된 예상순위
-      sourceLabel = '실제 경마지 분석 ✨';
-    } else {
-      d.card = JSON.parse(JSON.stringify(DB.raceCard));
-      d.card.region = d.region; d.card.raceNo = d.raceNo;
-      d.card.prediction = null;
-    }
-    preview.innerHTML = `
-      <div class="section-t">인식된 출주표 · ${esc(sourceLabel)}</div>
-      <div class="card" style="padding:14px">
-        <div class="row between" style="margin-bottom:10px">
-          <b>${esc(d.card.region)} ${d.card.raceNo}R</b>
-          <span class="muted" style="font-size:13px">${d.card.distance} · ${d.card.grade}</span>
-        </div>
-        ${d.card.horses.map(h=>`
-          <div class="row between" style="padding:7px 0;border-top:1px solid var(--line)">
-            <div class="row gap8"><span class="no" style="width:26px;height:26px;font-size:13px">${h.no}</span>
-              <span style="font-weight:700">${esc(h.name)}</span></div>
-            <span class="muted" style="font-size:13px">${h.jockey} · ${h.weight}kg · ${h.odds}배</span>
-          </div>`).join('')}
-      </div>`;
-    analyzeBtn.disabled = false;
-  }
-
-  function showFile(name, size) {
-    fileList.innerHTML = `
-      <div class="filerow">
-        <div class="ic">${name.endsWith('.pdf')?icon('pdf'):icon('camera')}</div>
-        <div><div class="nm">${esc(name)}</div><div class="sz">${size}</div></div>
-        <button class="x" id="rmFile">×</button>
-      </div>`;
-    $('#rmFile', fileList).onclick = () => { fileList.innerHTML=''; preview.innerHTML=''; d.card=null; analyzeBtn.disabled=true; };
-    loadCard('업로드 인식');
-  }
-
-  drop.onclick = () => fileInp.click();
-  fileInp.onchange = () => {
-    const f = fileInp.files[0]; if (!f) return;
-    showFile(f.name, (f.size/1024).toFixed(0) + ' KB');
-  };
-  ['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
-  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
-  drop.addEventListener('drop', e => { const f=e.dataTransfer.files[0]; if(f) showFile(f.name,(f.size/1024).toFixed(0)+' KB'); });
-
-  $('#sampleBtn', body).onclick = () => loadCard('샘플 데이터');
-  analyzeBtn.onclick = () => go('analysis');
-  // 건너뛰기: 업로드 없이 바로 분석
-  $('#skip', body).onclick = () => { if (!d.card) loadCard('샘플 데이터'); go('analysis'); };
-
-  // 미리 분석된 실제 경주면 자동 로드 + 안내
-  const pre = findPreRace(d.region, d.raceNo, d.date);
-  if (pre) {
-    $('.speech', body).innerHTML = `<b>부경 ${d.raceNo}R</b> 실제 경마지 분석이 준비돼 있어요! ✨<br>바로 <b>예상 순위 보기</b>를 눌러보세요.`;
-    loadCard();
-  } else if (d.card) {
-    loadCard('샘플 데이터');
-  }
-
-  return shell({ title: '정보 입력', tab: 'setup', body, back: () => go('setup') });
-});
-
-/* =========================================================
-   5) 분석 → 예측
-   ========================================================= */
-route('analysis', () => {
-  const d = State.draft;
-  if (!d.card) { go('input'); return document.createElement('div'); }
-
-  const body = document.createElement('div');
-  body.innerHTML = `
-    <div class="steps">
-      <div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div>
-      <span class="lbl">3 / 4 · 분석 · 예측</span>
-    </div>
-    <div id="phase"></div>
-  `;
-  const phase = $('#phase', body);
-
-  // 분석 중 애니메이션
-  phase.innerHTML = `
-    <div class="analyzing">
-      <div class="pony">${pony({ size: 130, mood: 'thinking', glasses: true })}</div>
-      <h3 style="margin:16px 0 4px">브레인이 분석 중…</h3>
-      <p class="muted" style="margin:0">배당 · 최근 폼 · 기수 · 거리 적성 종합</p>
-      <div class="dots"><i></i><i></i><i></i></div>
-    </div>`;
-
-  setTimeout(() => {
-    d.prediction = d.card.prediction || predict(d.card);   // 미리 분석된 실제 경주면 그 결과 사용
-    renderPrediction(phase, d);
-  }, 1600);
-
-  return shell({ title: '분석 결과', tab: 'setup', body, back: () => go('input') });
-});
-
-function renderPrediction(container, d) {
-  const p = d.prediction;
-  // 경마지 전문가 순위 (쓰여진 순서 1~6)
-  const expertOrder = d.card.horses.filter(h => h.expert).sort((a, b) => a.expert - b.expert);
-  container.innerHTML = `
-    <div class="pony-line" style="margin:2px 0 16px">
-      ${pony({ size: 58 })}
-      <div class="speech">분석 끝! <b>${esc(p.note)}</b><br>제가 뽑은 순위예요 👇 (경마지 전문가 순위도 같이 봐요!)</div>
-    </div>
-
-    <div class="section-t">📰 경마지 전문가 순위 <span class="muted" style="font-weight:700">· 경마지 기재 순</span></div>
-    <div class="expert-row">
-      ${expertOrder.map(h => `<div class="expert-chip"><span class="er">${h.expert}</span><span>${h.no}번 ${esc(h.name)}</span></div>`).join('')}
-    </div>
-
-    <div class="section-t">🧠 브레인 추천 순위 <span class="muted" style="font-weight:700">· AI 분석</span></div>
-    <div id="rankList">
-      ${p.ranked.map(h => `
-        <div class="horse ${h.rank<=3?'pick':''}">
-          <div class="no r${h.rank<=3?h.rank:''}">${h.rank<=3?h.rank:h.no}</div>
-          <div class="info">
-            <div class="nm">${h.no}번 ${esc(h.name)} ${h.expert?`<span class="exp">전문가 ${h.expert}위</span>`:'<span class="exp exp--none">전문가 순위 밖</span>'}</div>
-            <div class="meta">${h.jockey} · ${h.weight}kg · ${h.age}세</div>
-            <div class="recent">${h.recent.map(r=>`<i class="${r==='1'?'win':''}">${r}</i>`).join('')}</div>
-          </div>
-          <div class="right">
-            <div class="odds">${h.odds}<small style="font-size:11px;color:var(--muted)">배</small></div>
-            <div class="conf">신뢰도 ${h.confidence}%</div>
-          </div>
-        </div>`).join('')}
-    </div>
-
-    <div class="section-t">${icon('spark')} 브레인 코멘트</div>
-    <div class="card card--glow">
-      ${p.comments.map(c=>`<div style="display:flex;gap:8px;padding:6px 0;font-size:14px;line-height:1.55">
-        <span style="color:var(--amber)">▹</span><span>${esc(c)}</span></div>`).join('')}
-    </div>
-
-    <div style="margin-top:22px">
-      <button class="btn" id="toBet">${icon('coin')} 배팅하기</button>
-    </div>
-  `;
-  $('#toBet', container).onclick = () => go('betting');
-}
-
-/* =========================================================
-   6) 배팅 (여러 배팅 + 마권 최대 10장)
+   배팅 (마번 1~12, 여러 배팅, 마권 사진)
    ========================================================= */
 route('betting', () => {
   const d = State.draft;
-  if (!d.card) { go('input'); return document.createElement('div'); }
-  if (!d.bets.length) {
-    const firstNo = d.prediction ? d.prediction.top3[0].no : d.card.horses[0].no;
-    d.bets = [{ type: 'win', horses: [firstNo], amount: 5000 }];
-  }
+  if (!d.bets.length) d.bets = [{ type: 'win', horses: [], amount: null }];
   let bi = 0;
-  const typeName = id => DB.betTypes.find(t => t.id === id).name;
-
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="steps">
-      <div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div>
-      <span class="lbl">4 / 4 · 배팅</span>
-    </div>
-
-    <div class="pony-line" style="margin-bottom:16px">
-      ${pony({ size: 56 })}
-      <div class="speech">배팅 정보를 골라주세요. 여러 개 걸 수 있어요!<br>마권 사진은 최대 <b>10장</b>까지 등록돼요.</div>
-    </div>
+    <div class="steps"><div class="dot on"></div><div class="dot on"></div><span class="lbl">2 / 2 · 배팅</span></div>
+    <div class="pony-line" style="margin-bottom:16px">${pony({ size: 56 })}
+      <div class="speech"><b>${regShort(d.region)} ${d.raceNo}R</b> 배팅 정보를 골라주세요.<br>여러 개 걸 수 있어요! 마권 사진은 최대 10장.</div></div>
 
     <div class="section-t">내 배팅 <span class="muted" id="betCount" style="font-weight:700"></span></div>
     <div class="bet-pager">
-      <button class="pgbtn" id="prevBet" aria-label="이전 배팅">${icon('back')}</button>
+      <button class="pgbtn" id="prevBet">${icon('back')}</button>
       <div class="pg-ind" id="pgInd"></div>
-      <button class="pgbtn" id="nextBet" aria-label="다음 배팅">${icon('arrow')}</button>
-    </div>
+      <button class="pgbtn" id="nextBet">${icon('arrow')}</button></div>
     <div id="betEditor"></div>
     <div class="bet-actions">
       <button class="btn btn--ghost btn--sm" id="addBet" style="flex:1">${icon('plus')} 배팅 추가</button>
-      <button class="btn btn--ghost btn--sm" id="delBet" style="flex:1">${icon('trash')} 이 배팅 삭제</button>
-    </div>
+      <button class="btn btn--ghost btn--sm" id="delBet" style="flex:1">${icon('trash')} 삭제</button></div>
 
     <div class="section-t">마권 사진 <span class="muted" id="slipCount" style="font-weight:700"></span></div>
     <div class="slip-grid" id="slipGrid"></div>
     <input type="file" id="slipFile" accept="image/*" multiple hidden>
 
-    <div class="section-t">전체 배팅 요약</div>
+    <div class="section-t">전체 요약</div>
     <div class="card" id="summary"></div>
+    <div style="margin-top:16px"><button class="btn" id="confirmBet">${icon('check')} 배팅 확정</button></div>`;
 
-    <div style="margin-top:16px">
-      <button class="btn" id="confirmBet">${icon('check')} 배팅 확정</button>
-    </div>
-  `;
-
-  const editor = $('#betEditor', body), pgInd = $('#pgInd', body), betCount = $('#betCount', body);
-  const summary = $('#summary', body), slipGrid = $('#slipGrid', body), slipFile = $('#slipFile', body);
+  const editor = $('#betEditor', body), pgInd = $('#pgInd', body), betCount = $('#betCount', body),
+        summary = $('#summary', body), slipGrid = $('#slipGrid', body), slipFile = $('#slipFile', body);
+  const QUICK = [500, 1000, 1500, 2000];
 
   function renderPager() {
     betCount.textContent = `· 총 ${d.bets.length}건`;
@@ -1491,262 +2368,263 @@ route('betting', () => {
     $('#nextBet', body).disabled = bi === d.bets.length - 1;
     $('#delBet', body).disabled = d.bets.length <= 1;
   }
-
   function renderEditor() {
-    const b = d.bets[bi];
-    const need = betNeed(b.type);
-    editor.innerHTML = `
-      <div class="bet-card">
-        <div class="mini-t">배팅 타입</div>
-        <div class="chip-wrap" id="typePick">
-          ${DB.betTypes.map(t => `<button class="chip ${b.type===t.id?'active':''}" data-type="${t.id}">${t.name}</button>`).join('')}
-        </div>
-        <div class="mini-t" style="margin-top:14px">배팅 마번 <span class="muted" style="font-weight:600">· ${need}두 선택</span></div>
-        <div class="chip-wrap" id="horsePick">
-          ${d.card.horses.map(h => `<button class="chip ${b.horses.includes(h.no)?'active':''}" data-horse="${h.no}">${h.no}번 ${esc(h.name)}</button>`).join('')}
-        </div>
-        <div class="mini-t" style="margin-top:14px">배팅 금액</div>
-        <input class="inp" type="number" id="amount" inputmode="numeric" step="100" min="100" value="${b.amount}">
-        <div class="numpad-input" id="quickAmt">
-          ${[1000,5000,10000,50000].map(a => `<button class="chip" data-amt="${a}">+${a.toLocaleString()}</button>`).join('')}
-        </div>
-      </div>`;
-    $('#typePick', editor).addEventListener('click', e => {
-      const c = e.target.closest('[data-type]'); if (!c) return;
-      b.type = c.dataset.type; b.horses = b.horses.slice(0, betNeed(b.type));
-      renderEditor(); renderSummary();
-    });
-    $('#horsePick', editor).addEventListener('click', e => {
-      const c = e.target.closest('[data-horse]'); if (!c) return;
-      const no = +c.dataset.horse, need = betNeed(b.type);
-      if (b.horses.includes(no)) b.horses = b.horses.filter(x => x !== no);
-      else { if (b.horses.length >= need) b.horses.shift(); b.horses.push(no); }
-      editor.querySelectorAll('#horsePick .chip').forEach(x => x.classList.toggle('active', b.horses.includes(+x.dataset.horse)));
-      renderSummary();
-    });
-    $('#amount', editor).oninput = e => { b.amount = +e.target.value || 0; renderSummary(); };
-    $('#quickAmt', editor).addEventListener('click', e => {
-      const q = e.target.closest('[data-amt]'); if (!q) return;
-      b.amount = (b.amount || 0) + +q.dataset.amt; $('#amount', editor).value = b.amount; renderSummary();
-    });
+    const b = d.bets[bi], need = betNeed(b.type);
+    editor.innerHTML = `<div class="bet-card">
+      <div class="mini-t">배팅 타입</div>
+      <div class="chip-wrap" id="typePick">${DB.betTypes.map(t=>`<button class="chip ${b.type===t.id?'active':''}" data-type="${t.id}">${t.name}</button>`).join('')}</div>
+      <div class="mini-t" style="margin-top:14px">배팅 마번 <span class="muted" style="font-weight:600">· ${need}두 선택</span></div>
+      <div class="num-grid" id="horsePick">${Array.from({length:12},(_,i)=>i+1).map(n=>`<button class="numchip ${b.horses.includes(n)?'active':''}" data-h="${n}">${n}</button>`).join('')}</div>
+      <div class="mini-t" style="margin-top:14px">배팅 금액</div>
+      <input class="inp" type="number" id="amount" inputmode="numeric" step="100" min="0" placeholder="금액 입력" value="${b.amount==null?'':b.amount}">
+      <div class="numpad-input" id="quickAmt">${QUICK.map(a=>`<button class="chip" data-set="${a}">${a.toLocaleString()}</button>`).join('')}</div>
+    </div>`;
+    $('#typePick', editor).addEventListener('click', e => { const c = e.target.closest('[data-type]'); if (!c) return;
+      b.type = c.dataset.type; b.horses = b.horses.slice(0, betNeed(b.type)); renderEditor(); renderSummary(); });
+    $('#horsePick', editor).addEventListener('click', e => { const c = e.target.closest('[data-h]'); if (!c) return;
+      const n = +c.dataset.h, need = betNeed(b.type);
+      if (b.horses.includes(n)) b.horses = b.horses.filter(x => x !== n);
+      else { if (b.horses.length >= need) b.horses.shift(); b.horses.push(n); }
+      editor.querySelectorAll('#horsePick .numchip').forEach(x => x.classList.toggle('active', b.horses.includes(+x.dataset.h))); renderSummary(); });
+    $('#amount', editor).oninput = e => { b.amount = e.target.value === '' ? null : (+e.target.value || 0); renderSummary(); };
+    $('#quickAmt', editor).addEventListener('click', e => { const q = e.target.closest('[data-set]'); if (!q) return;
+      b.amount = +q.dataset.set; $('#amount', editor).value = b.amount; renderSummary(); });
   }
-
   function renderSummary() {
     const total = d.bets.reduce((s, b) => s + (b.amount || 0), 0);
-    summary.innerHTML = `
-      <div class="kv"><span class="k">경주</span><span class="v">${esc(d.card.region)} ${d.card.raceNo}R · ${d.mode==='real'?'실전':'모의'}</span></div>
-      ${d.bets.map((b, i) => `<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.length?b.horses.map(n=>n+'번').join(','):'—'} · ${won(b.amount||0)}</span></div>`).join('')}
+    summary.innerHTML = `<div class="kv"><span class="k">경주</span><span class="v">${regShort(d.region)} ${d.raceNo}R · ${d.mode==='real'?'실전':'모의'}</span></div>
+      ${d.bets.map((b,i)=>`<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.length?b.horses.map(n=>n+'번').join(','):'—'} · ${won(b.amount||0)}</span></div>`).join('')}
       <div class="kv total-row"><span class="k">합계 (${d.bets.length}건)</span><span class="v">${won(total)}</span></div>`;
   }
-
   function renderSlips() {
     $('#slipCount', body).textContent = `· ${d.slips.length}/10`;
-    slipGrid.innerHTML = d.slips.map((nm, i) => `
-      <div class="slip"><div class="slip-ic">${icon('camera')}</div><span>${i+1}</span>
-        <button class="rm" data-rm="${i}">×</button></div>`).join('')
+    slipGrid.innerHTML = d.slips.map((nm,i)=>`<div class="slip"><div class="slip-ic">${icon('camera')}</div><span>${i+1}</span><button class="rm" data-rm="${i}">×</button></div>`).join('')
       + (d.slips.length < 10 ? `<button class="slip add" id="addSlip">${icon('plus')}<span>추가</span></button>` : '');
-    const add = $('#addSlip', slipGrid);
-    if (add) add.onclick = () => slipFile.click();
-    slipGrid.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { d.slips.splice(+b.dataset.rm, 1); renderSlips(); });
+    const add = $('#addSlip', slipGrid); if (add) add.onclick = () => slipFile.click();
+    slipGrid.querySelectorAll('[data-rm]').forEach(bb => bb.onclick = () => { d.slips.splice(+bb.dataset.rm, 1); renderSlips(); });
   }
-
-  slipFile.onchange = () => {
-    [...slipFile.files].forEach(f => { if (d.slips.length < 10) d.slips.push(f.name); });
-    slipFile.value = ''; renderSlips();
-  };
-
-  $('#prevBet', body).onclick = () => { if (bi > 0) { bi--; renderPager(); renderEditor(); } };
-  $('#nextBet', body).onclick = () => { if (bi < d.bets.length - 1) { bi++; renderPager(); renderEditor(); } };
-  $('#addBet', body).onclick = () => {
-    d.bets.push({ type: 'win', horses: [], amount: 5000 });
-    bi = d.bets.length - 1; renderPager(); renderEditor(); renderSummary();
-  };
-  $('#delBet', body).onclick = () => {
-    if (d.bets.length <= 1) return;
-    d.bets.splice(bi, 1); if (bi >= d.bets.length) bi = d.bets.length - 1;
-    renderPager(); renderEditor(); renderSummary();
-  };
-
+  slipFile.onchange = () => { [...slipFile.files].forEach(f => { if (d.slips.length < 10) d.slips.push(f.name); }); slipFile.value=''; renderSlips(); };
+  $('#prevBet', body).onclick = () => { if (bi>0){ bi--; renderPager(); renderEditor(); } };
+  $('#nextBet', body).onclick = () => { if (bi<d.bets.length-1){ bi++; renderPager(); renderEditor(); } };
+  $('#addBet', body).onclick = () => { d.bets.push({ type:'win', horses:[], amount:null }); bi=d.bets.length-1; renderPager(); renderEditor(); renderSummary(); };
+  $('#delBet', body).onclick = () => { if (d.bets.length<=1) return; d.bets.splice(bi,1); if (bi>=d.bets.length) bi=d.bets.length-1; renderPager(); renderEditor(); renderSummary(); };
   $('#confirmBet', body).onclick = () => {
-    for (let i = 0; i < d.bets.length; i++) {
-      const b = d.bets[i], need = betNeed(b.type);
-      if (b.horses.length < need) return toast(`${i+1}번 배팅: ${need}두를 선택해주세요`);
-      if (!b.amount) return toast(`${i+1}번 배팅: 금액을 입력해주세요`);
-    }
+    for (let i=0;i<d.bets.length;i++){ const b=d.bets[i], need=betNeed(b.type);
+      if (b.horses.length<need) return toast(`${i+1}번 배팅: ${need}두 선택해주세요`);
+      if (!b.amount) return toast(`${i+1}번 배팅: 금액을 입력해주세요`); }
+    const label = `${regShort(d.region)} ${d.raceNo}R`;
+    d.recordId = State.addRecord({ date:d.date, mode:d.mode, region:d.region, raceNo:d.raceNo, label,
+      bets:d.bets.map(b=>({type:b.type,horses:b.horses.slice(),amount:b.amount})), slips:d.slips.slice(), result:null, settled:false });
     go('done');
   };
-
   renderPager(); renderEditor(); renderSummary(); renderSlips();
-  return shell({ title: '배팅하기', tab: 'setup', body, back: () => go('analysis') });
+  return shell({ title: '배팅하기', tab: 'setup', body, back: () => go('setup') });
 });
 
 /* =========================================================
-   완료
+   배팅 완료
    ========================================================= */
 route('done', () => {
   const d = State.draft;
-  if (!d.bets.length) { go('betting'); return document.createElement('div'); }
-  const typeName = id => DB.betTypes.find(t => t.id === id).name;
-  const total = d.bets.reduce((s, b) => s + (b.amount || 0), 0);
+  const rec = State.getRecord(d.recordId);
+  if (!rec) { go('setup'); return document.createElement('div'); }
+  const total = rec.bets.reduce((s,b)=>s+(b.amount||0),0);
   const body = document.createElement('div');
   body.innerHTML = `
     <div style="text-align:center;padding:16px 0 4px">
       <div class="float" style="filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))">${pony({ size: 120 })}</div>
       <h2 style="margin:12px 0 2px">배팅 완료! 🎉</h2>
-      <p class="muted" style="margin:0">${d.mode==='real'?'실전':'모의'} 레이스 · ${esc(d.card.region)} ${d.card.raceNo}R</p>
-    </div>
-
+      <p class="muted" style="margin:0">${rec.mode==='real'?'실전':'모의'} · ${esc(rec.label)}</p></div>
     <div class="card" style="margin-top:14px">
-      ${d.bets.map((b, i) => `<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.map(n=>n+'번').join(',')} · ${won(b.amount)}</span></div>`).join('')}
-      <div class="kv total-row"><span class="k">배팅 합계 (${d.bets.length}건)</span><span class="v">${won(total)}</span></div>
-      ${d.slips.length?`<div class="kv"><span class="k">마권 사진</span><span class="v">${d.slips.length}장 첨부 📎</span></div>`:''}
-    </div>
-
-    <div class="pony-line" style="margin-top:18px">
-      ${pony({ size: 56 })}
-      <div class="speech">경주 끝나면 <b>결과 입력</b>하면<br>적중·획득까지 정산해드릴게요! 🍀</div>
-    </div>
-
+      ${rec.bets.map((b,i)=>`<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.map(n=>n+'번').join(',')} · ${won(b.amount)}</span></div>`).join('')}
+      <div class="kv total-row"><span class="k">배팅 합계 (${rec.bets.length}건)</span><span class="v">${won(total)}</span></div>
+      ${rec.slips.length?`<div class="kv"><span class="k">마권 사진</span><span class="v">${rec.slips.length}장 📎</span></div>`:''}</div>
+    <div class="pony-line" style="margin-top:18px">${pony({ size: 56 })}
+      <div class="speech">경주 끝나면 <b>결과 입력</b>하면<br>적중·획득까지 정산해드릴게요! 🍀</div></div>
     <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
       <button class="btn" id="toResult">${icon('medal')} 결과 입력하기</button>
-      <button class="btn btn--ghost" id="again">${icon('flag')} 다른 경주 분석하기</button>
-      <button class="btn btn--ghost" id="home">홈으로</button>
-    </div>
-  `;
-  $('#toResult', body).onclick = () => go('result');
+      <button class="btn btn--ghost" id="again">${icon('flag')} 다른 경주 배팅</button>
+      <button class="btn btn--ghost" id="home">홈으로</button></div>`;
+  $('#toResult', body).onclick = () => go('result', { q: 'id=' + rec.id });
   $('#again', body).onclick = () => { State.resetDraft(); go('setup'); };
   $('#home', body).onclick = () => { State.resetDraft(); go('home'); };
-  return shell({ title: '완료', tab: 'setup', body, nav: true, back: () => go('home') });
+  return shell({ title: '완료', tab: 'setup', body, back: () => go('home') });
 });
 
 /* =========================================================
-   7) 결과 입력 (1·2·3착 + 결과 사진)
+   결과 입력 (착순 + 적중 배당률)
    ========================================================= */
 route('result', () => {
-  const d = State.draft;
-  if (!d.card) { go('input'); return document.createElement('div'); }
-  const t3 = d.prediction ? d.prediction.top3 : d.card.horses;
-  d.result = d.result || { first: t3[0]?.no ?? null, second: t3[1]?.no ?? null, third: t3[2]?.no ?? null, photo: null };
-  const r = d.result;
-  const places = [['first', '1착'], ['second', '2착'], ['third', '3착']];
-
+  const id = getQuery().id || (State.draft && State.draft.recordId);
+  const rec = State.getRecord(id);
+  if (!rec) { go('results'); return document.createElement('div'); }
+  rec.result = rec.result || { first: null, second: null, third: null, mults: {} };
+  const r = rec.result;
+  const places = [['first','1착'],['second','2착'],['third','3착']];
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="pony-line" style="margin:2px 0 16px">
-      ${pony({ size: 56 })}
-      <div class="speech">경주 결과를 입력해주세요.<br>1·2·3착이랑 배당률은 <b>결과 사진</b>으로도 올릴 수 있어요!</div>
-    </div>
+    <div class="pony-line" style="margin:2px 0 16px">${pony({ size: 56 })}
+      <div class="speech"><b>${esc(rec.label)}</b> 결과를 입력해주세요.<br>착순 넣으면 적중 배팅에 <b>배당률</b>만 적으면 정산돼요!</div></div>
+    <div class="section-t">결과 사진 (선택)</div>
+    <div class="drop" id="resDrop" style="padding:18px"><div class="ic">${icon('camera')}</div>
+      <h4 style="font-size:14px">결과 사진 업로드</h4><p>착순·배당률이 보이게</p></div>
+    <input type="file" id="resFile" accept="image/*" hidden><div id="resFileList"></div>
+    ${places.map(([k,l])=>`<div class="section-t">${l}</div>
+      <div class="num-grid" data-place="${k}">${Array.from({length:12},(_,i)=>i+1).map(n=>`<button class="numchip ${r[k]===n?'active':''}" data-h="${n}">${n}</button>`).join('')}</div>`).join('')}
+    <div class="section-t">적중 배팅 배당률 입력</div>
+    <div id="mults"></div>
+    <div style="margin-top:22px"><button class="btn" id="calc">${icon('check')} 결과 확인하기</button></div>`;
 
-    <div class="section-t">결과 사진 (1·2·3착 · 배당률)</div>
-    <div class="drop" id="resDrop" style="padding:20px">
-      <div class="ic">${icon('camera')}</div>
-      <h4 style="font-size:14px">결과 사진 업로드</h4>
-      <p>착순·배당률이 보이게 찍어 올려주세요</p>
-    </div>
-    <input type="file" id="resFile" accept="image/*" hidden>
-    <div id="resFileList"></div>
-
-    ${places.map(([key, lbl]) => `
-      <div class="section-t">${lbl}</div>
-      <div class="chip-wrap" data-place="${key}">
-        ${d.card.horses.map(h => `<button class="chip ${r[key]===h.no?'active':''}" data-horse="${h.no}">${h.no}번</button>`).join('')}
-      </div>`).join('')}
-
-    <div style="margin-top:22px">
-      <button class="btn" id="calc">${icon('check')} 결과 확인하기</button>
-    </div>
-  `;
-
-  body.querySelectorAll('[data-place]').forEach(row => {
-    row.addEventListener('click', e => {
-      const c = e.target.closest('[data-horse]'); if (!c) return;
-      r[row.dataset.place] = +c.dataset.horse;
-      row.querySelectorAll('.chip').forEach(x => x.classList.toggle('active', x === c));
-    });
-  });
-
-  const resDrop = $('#resDrop', body), resFile = $('#resFile', body), resFileList = $('#resFileList', body);
-  resDrop.onclick = () => resFile.click();
-  resFile.onchange = () => {
-    const f = resFile.files[0]; if (!f) return; r.photo = f.name;
-    resFileList.innerHTML = `<div class="filerow"><div class="ic">${icon('camera')}</div>
-      <div><div class="nm">${esc(f.name)}</div><div class="sz">${(f.size/1024).toFixed(0)} KB</div></div>
-      <button class="x" id="rmRes">×</button></div>`;
-    $('#rmRes', resFileList).onclick = () => { resFileList.innerHTML = ''; r.photo = null; };
-  };
-
+  const multsBox = $('#mults', body);
+  function refreshMults() {
+    const hits = rec.bets.map((b,i)=>({b,i})).filter(({b})=>r.first!=null && evalHit(b, r));
+    if (r.first == null) { multsBox.innerHTML = `<div class="muted" style="font-size:13px;padding:4px 2px">먼저 1착을 선택하면 적중 배팅이 표시돼요.</div>`; return; }
+    if (!hits.length) { multsBox.innerHTML = `<div class="muted" style="font-size:13px;padding:4px 2px">현재 착순 기준 적중 배팅이 없어요.</div>`; return; }
+    multsBox.innerHTML = hits.map(({b,i})=>`<div class="mult-row">
+      <span class="mult-lbl">${i+1}. ${typeName(b.type)} <span class="muted">${b.horses.map(n=>n+'번').join(',')}</span></span>
+      <input class="inp mult-inp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="배당률" data-mi="${i}" value="${r.mults[i]!=null?r.mults[i]:''}"></div>`).join('');
+    multsBox.querySelectorAll('[data-mi]').forEach(inp => inp.oninput = e => { r.mults[inp.dataset.mi] = e.target.value===''?null:+e.target.value; });
+  }
+  body.querySelectorAll('[data-place]').forEach(row => row.addEventListener('click', e => {
+    const c = e.target.closest('[data-h]'); if (!c) return; r[row.dataset.place] = +c.dataset.h;
+    row.querySelectorAll('.numchip').forEach(x=>x.classList.toggle('active', x===c)); refreshMults(); }));
+  const resDrop=$('#resDrop',body), resFile=$('#resFile',body), resFileList=$('#resFileList',body);
+  resDrop.onclick=()=>resFile.click();
+  resFile.onchange=()=>{ const f=resFile.files[0]; if(!f)return; r.photo=f.name;
+    resFileList.innerHTML=`<div class="filerow"><div class="ic">${icon('camera')}</div><div><div class="nm">${esc(f.name)}</div></div><button class="x" id="rmRes">×</button></div>`;
+    $('#rmRes',resFileList).onclick=()=>{resFileList.innerHTML='';r.photo=null;}; };
   $('#calc', body).onclick = () => {
     if (r.first == null) return toast('최소 1착은 선택해주세요 🐴');
-    go('resultDone');
+    State.updateRecord(rec.id, { result: r, settled: true });
+    go('resultDone', { q: 'id=' + rec.id });
   };
-
+  refreshMults();
   return shell({ title: '결과 입력', tab: 'setup', body, back: () => go('done') });
 });
 
 /* =========================================================
-   8) 결과 요약 (적중·미적중·배수·획득)
+   결과 정산
    ========================================================= */
 route('resultDone', () => {
-  const d = State.draft;
-  if (!d.card || !d.result) { go('done'); return document.createElement('div'); }
-  const typeName = id => DB.betTypes.find(t => t.id === id).name;
-  const nameOf = no => (d.card.horses.find(h => h.no === no) || {}).name || '';
-  const evals = d.bets.map(b => ({ bet: b, ...evalBet(b, d.result, d.card) }));
-  const totalBet = d.bets.reduce((s, b) => s + b.amount, 0);
-  const totalGet = evals.reduce((s, e) => s + e.get, 0);
-  const netv = totalGet - totalBet, r = totalBet ? Math.round(totalGet / totalBet * 100) : 0;
-  const hits = evals.filter(e => e.hit).length;
-  const win = netv >= 0;
-  const rr = d.result;
-
+  const rec = State.getRecord(getQuery().id);
+  if (!rec || !rec.settled) { go('results'); return document.createElement('div'); }
+  const s = recSummary(rec), rr = rec.result, win = s.net >= 0;
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="pony-line" style="margin:2px 0 14px">
-      ${pony({ size: 56 })}
-      <div class="speech">정산 완료! <b>${d.bets.length}건 중 ${hits}건 적중</b>${win?' 🎉':' 🍀'}<br>${win?'축하해요, 수익이 났어요!':'아쉽지만 다음엔 더 잘 될 거예요!'}</div>
-    </div>
-
-    <div class="result-banner">
-      <div class="lbl">순손익 · 회수율 ${r}%</div>
-      <div class="big">${netv>=0?'+':'-'}${won(Math.abs(netv))}</div>
-      <div class="lbl">배팅 ${won(totalBet)} → 획득 ${won(totalGet)}</div>
-    </div>
-
+    <div class="pony-line" style="margin:2px 0 14px">${pony({ size: 56 })}
+      <div class="speech">정산 완료! <b>${rec.bets.length}건 중 ${s.hits}건 적중</b>${win?' 🎉':' 🍀'}<br>${win?'수익이 났어요!':'다음엔 더 잘 될 거예요!'}</div></div>
+    <div class="result-banner"><div class="lbl">순손익 · 회수율 ${s.roi}%</div>
+      <div class="big">${s.net>=0?'+':'-'}${won(Math.abs(s.net))}</div>
+      <div class="lbl">배팅 ${won(s.bet)} → 획득 ${won(s.payout)}</div></div>
     <div class="section-t">🏁 경주 결과</div>
-    <div class="podium">
-      ${[['1착', rr.first, 'r1'], ['2착', rr.second, 'r2'], ['3착', rr.third, 'r3']].map(([lbl, no, cls]) =>
-        `<div class="pod"><div class="no ${cls}">${no??'-'}</div><div class="pl">${lbl}</div><div class="pn">${no?esc(nameOf(no)):'미입력'}</div></div>`).join('')}
-    </div>
-
-    <div class="section-t">내 배팅 결과 <span class="muted" style="font-weight:700">· ${d.bets.length}건</span></div>
-    <div>
-      ${evals.map((e, i) => `
-        <div class="bet-result ${e.hit?'hit':'miss'}">
-          <div class="br-top">
-            <span class="br-type">${i+1}. ${typeName(e.bet.type)}</span>
-            <span class="br-badge ${e.hit?'hit':'miss'}">${e.hit?'적중':'미적중'}</span>
-          </div>
-          <div class="br-mid">
-            <span class="muted">${e.bet.horses.map(n=>n+'번').join(', ')}</span>
-            <span class="muted">배팅 ${won(e.bet.amount)}</span>
-          </div>
-          <div class="br-bot">
-            <span>${e.hit?`배수 <b>${e.mult}배</b>`:'—'}</span>
-            <span class="${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+won(e.get):won(0)}</span>
-          </div>
-        </div>`).join('')}
-    </div>
-
+    <div class="podium">${[['1착',rr.first,'r1'],['2착',rr.second,'r2'],['3착',rr.third,'r3']].map(([l,n,c])=>`<div class="pod"><div class="no ${c}">${n??'-'}</div><div class="pl">${l}</div></div>`).join('')}</div>
+    <div class="section-t">내 배팅 결과 <span class="muted" style="font-weight:700">· ${rec.bets.length}건</span></div>
+    <div>${rec.bets.map((b,i)=>{ const e=evalBet({...b,idx:i},rr); return `<div class="bet-result ${e.hit?'hit':'miss'}">
+      <div class="br-top"><span class="br-type">${i+1}. ${typeName(b.type)}</span><span class="br-badge ${e.hit?'hit':'miss'}">${e.hit?'적중':'미적중'}</span></div>
+      <div class="br-mid"><span class="muted">${b.horses.map(n=>n+'번').join(', ')}</span><span class="muted">배팅 ${won(b.amount)}</span></div>
+      <div class="br-bot"><span>${e.hit?`배당률 <b>${e.mult||'-'}배</b>`:'—'}</span><span class="${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+won(e.get):won(0)}</span></div></div>`; }).join('')}</div>
     <div style="margin-top:22px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn" id="toStats">${icon('chart')} 통계에서 보기</button>
-      <button class="btn btn--ghost" id="again">${icon('flag')} 다른 경주 분석하기</button>
-      <button class="btn btn--ghost" id="home">홈으로</button>
-    </div>
-  `;
-  $('#toStats', body).onclick = () => { State.resetDraft(); go('stats'); };
+      <button class="btn" id="toResults">${icon('chart')} 결과분석에서 보기</button>
+      <button class="btn btn--ghost" id="again">${icon('flag')} 다른 경주 배팅</button>
+      <button class="btn btn--ghost" id="home">홈으로</button></div>`;
+  $('#toResults', body).onclick = () => { State.resetDraft(); go('results'); };
   $('#again', body).onclick = () => { State.resetDraft(); go('setup'); };
   $('#home', body).onclick = () => { State.resetDraft(); go('home'); };
-  return shell({ title: '결과', tab: 'setup', body, back: () => go('result') });
+  return shell({ title: '결과', tab: 'setup', body, back: () => go('home') });
+});
+
+/* =========================================================
+   결과분석 (내 실제 기록)
+   ========================================================= */
+let resMode = 'real', resOpen = null;
+route('results', () => {
+  const body = document.createElement('div');
+  body.innerHTML = `
+    <div class="tabs" id="modeTabs">
+      <button class="tab ${resMode==='real'?'active':''}" data-m="real">실전</button>
+      <button class="tab ${resMode==='mock'?'active':''}" data-m="mock">모의</button></div>
+    <div id="resBody"></div>`;
+  const rb = $('#resBody', body);
+  function render2() {
+    const s = recStats(resMode), oh = overallHit(s.byType), dates = recDates(resMode);
+    let html = '';
+    if (!State.records.filter(r=>r.mode===resMode).length) {
+      html = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.6">아직 ${resMode==='real'?'실전':'모의'} 기록이 없어요.<br>레이스에서 배팅하면 여기 쌓여요! 🐎</div>`;
+      rb.innerHTML = html; return;
+    }
+    html += `<div class="hero" style="margin-bottom:6px"><div class="glowline"></div>
+      <div class="cnt" style="margin-bottom:10px"><b>${s.sessions}</b><span class="u">회</span><span class="dot">·</span><b>${s.races}</b><span class="u">경주</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">배팅금액</div><div class="v">${won(s.bet)}</div></div>
+        <div class="stat"><div class="k">배당금액</div><div class="v">${won(s.payout)}</div><div class="delta ${net(s)>=0?'up':'down'}">${net(s)>=0?'▲':'▼'} ${won(Math.abs(net(s)))}</div></div>
+        <div class="stat big"><div class="row between"><div class="k">회수율</div><div class="v" style="font-size:18px">${roi(s)}<small>%</small></div></div></div>
+        <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
+      </div></div>`;
+    dates.forEach(({date, recs}) => {
+      html += `<div class="section-t">${date} · ${recs.length}경주</div>`;
+      recs.forEach(rec => {
+        const su = recSummary(rec), open = resOpen === rec.id;
+        const pill = rec.settled ? `<span class="roi-pill ${su.roi>=100?'up':'down'}">${su.roi}%</span>`
+          : `<span class="roi-pill pend" data-enter="${rec.id}">결과입력</span>`;
+        html += `<div class="race-item ${open?'open':''}">
+          <button class="race-head" data-open="${rec.id}">
+            <div><div class="race-name">${esc(rec.label)} <span class="badge ${rec.mode==='mock'?'badge--mock':''}">${rec.mode==='real'?'실전':'모의'}</span></div>
+              <div class="muted" style="font-size:12px;margin-top:3px">배팅 ${won(su.bet)} · ${rec.bets.length}건${rec.settled?'':' · 결과 대기'}</div></div>
+            ${pill}</button>
+          ${open ? raceDetail(rec, su) : ''}</div>`;
+      });
+    });
+    rb.innerHTML = html;
+    rb.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { resOpen = resOpen===b.dataset.open?null:b.dataset.open; render2(); });
+    rb.querySelectorAll('[data-enter]').forEach(b => b.onclick = (e) => { e.stopPropagation(); go('result', { q:'id='+b.dataset.enter }); });
+  }
+  function raceDetail(rec, su) {
+    const rr = rec.result;
+    return `<div class="race-detail">
+      ${rec.settled?`<div class="muted" style="font-size:12px;margin-bottom:8px">착순 ${rr.first??'-'}·${rr.second??'-'}·${rr.third??'-'}</div>`:''}
+      <div class="btable">
+        <div class="btr bthead"><span>배팅방식</span><span>마번</span><span>배팅액</span><span>결과</span><span>획득</span></div>
+        ${rec.bets.map((b,i)=>{ const e=rec.settled?evalBet({...b,idx:i},rr):{hit:false,get:0,mult:0};
+          return `<div class="btr ${e.hit?'hit':''}"><span>${typeName(b.type)}</span><span>${b.horses.map(n=>n+'번').join(',')}</span><span>${won(b.amount)}</span>
+            <span class="${e.hit?'up':'muted'}">${!rec.settled?'대기':(e.hit?`적중 ${e.mult||'-'}배`:'미적중')}</span>
+            <span class="${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+won(e.get):(rec.settled?'-':'')}</span></div>`; }).join('')}
+      </div>
+      ${rec.settled?`<div class="race-sum"><span>회수율 ${su.roi}%</span><span class="${su.net>=0?'up':'down'}">순손익 ${su.net>=0?'+':'-'}${won(Math.abs(su.net))}</span></div>`
+        :`<button class="btn btn--sm" style="width:100%;margin-top:10px" data-enter2="${rec.id}">${icon('medal')} 결과 입력하기</button>`}
+    </div>`;
+  }
+  $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
+    body.querySelectorAll('#modeTabs .tab').forEach(x=>x.classList.toggle('active',x===m)); render2(); });
+  rb.addEventListener('click', e => { const b=e.target.closest('[data-enter2]'); if(b) go('result',{q:'id='+b.dataset.enter2}); });
+  render2();
+  return shell({ title: '결과분석', sub: '내 배팅 성적', tab: 'results', body });
+});
+
+/* =========================================================
+   내정보
+   ========================================================= */
+route('profile', () => {
+  const body = document.createElement('div');
+  const name = State.user.name || '경마러';
+  const rs = recStats('real'), ms = recStats('mock');
+  body.innerHTML = `
+    <div class="pony-line" style="margin:6px 0 18px">${pony({ size: 70 })}<div class="speech">안녕하세요 <b>${esc(name)}</b>님!</div></div>
+    <div class="card"><div class="field" style="margin-bottom:14px"><label>이름</label>
+      <input class="inp" id="pfName" value="${esc(name)}" maxlength="12"></div>
+      <button class="btn btn--ghost" id="saveName">이름 저장</button></div>
+    <div class="section-t">기록</div>
+    <div class="card">
+      <div class="kv"><span class="k">실전</span><span class="v">${rs.sessions}회 · ${rs.races}경주 · 회수율 ${roi(rs)}%</span></div>
+      <div class="kv"><span class="k">모의</span><span class="v">${ms.sessions}회 · ${ms.races}경주 · 회수율 ${roi(ms)}%</span></div>
+      <div class="kv"><span class="k">저장된 기록</span><span class="v">${State.records.length}건</span></div>
+    </div>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn--ghost" id="resetOnb">온보딩 다시 보기</button>
+      <button class="btn btn--ghost" id="wipe" style="color:var(--down)">모든 기록 초기화</button></div>`;
+  $('#saveName', body).onclick = () => { State.saveName($('#pfName', body).value || '경마러'); toast('저장했어요 🐴'); };
+  $('#resetOnb', body).onclick = () => { store.del('rb.name'); State.user.name=''; go('onboarding'); };
+  $('#wipe', body).onclick = () => { if (confirm('저장된 배팅 기록을 모두 지울까요?')) { State.records=[]; State._saveRecords(); toast('기록을 초기화했어요'); render(); } };
+  return shell({ title: '내 정보', tab: 'profile', body });
 });
 
 /* ---------- 부팅 ---------- */
