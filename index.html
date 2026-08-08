@@ -511,6 +511,23 @@ select.inp { appearance: none; background-image: none; }
 /* 인라인 아이콘 크기 보정 (카드 내 텍스트 옆 아이콘) */
 .card--glow .row svg { width: 18px; height: 18px; vertical-align: -3px; }
 
+/* ------- 가로 밀림(오버스크롤) 방지 ------- */
+html, body { overflow-x: hidden; overscroll-behavior: none; }
+#app { overflow-x: hidden; max-width: 100%; }
+.screen { overflow-x: hidden; overscroll-behavior-y: contain; touch-action: pan-y; }
+.chip-wrap, .num-grid, .stat-grid { max-width: 100%; }
+
+/* ------- 결과: 배팅별 배당률 입력 카드 ------- */
+.mult-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 13px 14px; margin-bottom: 10px; }
+.mc-top { display: flex; justify-content: space-between; align-items: center; }
+.mc-type { font-size: 15px; font-weight: 800; }
+.mc-no { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.mc-in { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.mc-lbl { font-size: 13px; font-weight: 700; color: var(--muted); flex: none; }
+.mc-in .mult-inp { flex: 1; width: auto; padding: 12px 13px; }
+.mc-x { font-size: 14px; font-weight: 800; color: var(--text-2); flex: none; }
+.mc-get { font-size: 12.5px; font-weight: 800; margin-top: 8px; }
+
 </style>
 </head>
 <body>
@@ -1990,10 +2007,10 @@ function evalHit(bet, result) {
     default:         return false;
   }
 }
-// 배팅 정산: {hit, mult, get}
+// 배팅 정산: 배당률(mult)을 입력한 배팅만 적중으로 계산 (착순 없이도 OK)
 function evalBet(bet, result) {
-  const hit = evalHit(bet, result);
-  const mult = hit ? (result.mults && +result.mults[bet.idx] || 0) : 0;
+  const mult = (result && result.mults && +result.mults[bet.idx]) || 0;
+  const hit = mult > 0;
   return { hit, mult, get: hit ? Math.round((bet.amount || 0) * mult) : 0 };
 }
 // 레코드 정산 요약
@@ -2023,7 +2040,7 @@ function recStats(mode) {
     r.bets.forEach((b, i) => {
       byType[b.type] = byType[b.type] || [0, 0];
       byType[b.type][0]++;
-      if (evalHit(b, r.result)) byType[b.type][1]++;
+      if (evalBet({ ...b, idx: i }, r.result).hit) byType[b.type][1]++;
     });
   });
   return { sessions: dates.size, races: recs.length, bet, payout, byType };
@@ -2258,6 +2275,13 @@ route('brain', () => {
       </button>
       ${open ? brainDetail(r) : ''}</div>`);
     $('[data-k]', node).onclick = () => { brainOpen = open ? null : key; render(); };
+    const bb = $('[data-bet]', node);
+    if (bb) bb.onclick = e => {
+      e.stopPropagation();
+      State.resetDraft();
+      Object.assign(State.draft, { region: r.region, raceNo: r.raceNo, date: r.date, mode: 'real' });
+      go('betting');
+    };
     return node;
   }
   function brainDetail(r) {
@@ -2270,7 +2294,8 @@ route('brain', () => {
           <div class="bconf">${h.conf}%</div></div>`).join('')}
       <div class="card card--glow" style="margin-top:10px">
         ${(r.comments||[]).map(c=>`<div style="display:flex;gap:8px;padding:5px 0;font-size:13.5px;line-height:1.55"><span style="color:var(--amber)">▹</span><span>${esc(c)}</span></div>`).join('')}</div>
-      <div class="muted" style="font-size:11px;margin-top:10px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
+      <div class="muted" style="font-size:11px;margin:10px 0 4px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
+      <button class="btn" data-bet style="margin-top:10px">${icon('coin')} 이 경주 배팅하러 가기</button>
     </div>`;
   }
   // ranked에 rank 부여
@@ -2458,47 +2483,62 @@ route('result', () => {
   const id = getQuery().id || (State.draft && State.draft.recordId);
   const rec = State.getRecord(id);
   if (!rec) { go('results'); return document.createElement('div'); }
-  rec.result = rec.result || { first: null, second: null, third: null, mults: {} };
+  rec.result = rec.result || { first: null, second: null, third: null, mults: {}, photo: null };
   const r = rec.result;
   const places = [['first','1착'],['second','2착'],['third','3착']];
   const body = document.createElement('div');
   body.innerHTML = `
     <div class="pony-line" style="margin:2px 0 16px">${pony({ size: 56 })}
-      <div class="speech"><b>${esc(rec.label)}</b> 결과를 입력해주세요.<br>착순 넣으면 적중 배팅에 <b>배당률</b>만 적으면 정산돼요!</div></div>
-    <div class="section-t">결과 사진 (선택)</div>
-    <div class="drop" id="resDrop" style="padding:18px"><div class="ic">${icon('camera')}</div>
-      <h4 style="font-size:14px">결과 사진 업로드</h4><p>착순·배당률이 보이게</p></div>
-    <input type="file" id="resFile" accept="image/*" hidden><div id="resFileList"></div>
-    ${places.map(([k,l])=>`<div class="section-t">${l}</div>
+      <div class="speech"><b>${esc(rec.label)}</b> 결과를 입력해주세요.<br><b>맞은 배팅에만 배당률</b>을 적으면 돼요! (안 적으면 미적중)</div></div>
+
+    <div class="section-t">${icon('coin')} 배팅별 배당률 <span class="muted" style="font-weight:700">· 맞은 것만 입력</span></div>
+    <div id="mults">
+      ${rec.bets.map((b,i)=>`<div class="mult-card">
+        <div class="mc-top"><span class="mc-type">${i+1}. ${typeName(b.type)}</span><span class="mc-no">${b.horses.map(n=>n+'번').join(', ')}</span></div>
+        <div class="mc-in">
+          <span class="mc-lbl">배당률</span>
+          <input class="inp mult-inp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="예) 4.2 (안 맞으면 비워두기)" data-mi="${i}" value="${r.mults[i]!=null?r.mults[i]:''}">
+          <span class="mc-x">배</span>
+        </div>
+        <div class="mc-get muted" data-get="${i}"></div>
+      </div>`).join('')}
+    </div>
+
+    <div class="section-t">착순 기록 <span class="muted" style="font-weight:700">· 선택</span></div>
+    ${places.map(([k,l])=>`<div class="mini-t" style="margin:6px 2px 6px">${l}</div>
       <div class="num-grid" data-place="${k}">${Array.from({length:12},(_,i)=>i+1).map(n=>`<button class="numchip ${r[k]===n?'active':''}" data-h="${n}">${n}</button>`).join('')}</div>`).join('')}
-    <div class="section-t">적중 배팅 배당률 입력</div>
-    <div id="mults"></div>
+
+    <div class="section-t">결과 사진 <span class="muted" style="font-weight:700">· 선택</span></div>
+    <div class="drop" id="resDrop" style="padding:18px"><div class="ic">${icon('camera')}</div>
+      <h4 style="font-size:14px">결과 사진 업로드</h4><p>배당률표를 찍어두면 편해요</p></div>
+    <input type="file" id="resFile" accept="image/*" hidden><div id="resFileList"></div>
+
     <div style="margin-top:22px"><button class="btn" id="calc">${icon('check')} 결과 확인하기</button></div>`;
 
-  const multsBox = $('#mults', body);
-  function refreshMults() {
-    const hits = rec.bets.map((b,i)=>({b,i})).filter(({b})=>r.first!=null && evalHit(b, r));
-    if (r.first == null) { multsBox.innerHTML = `<div class="muted" style="font-size:13px;padding:4px 2px">먼저 1착을 선택하면 적중 배팅이 표시돼요.</div>`; return; }
-    if (!hits.length) { multsBox.innerHTML = `<div class="muted" style="font-size:13px;padding:4px 2px">현재 착순 기준 적중 배팅이 없어요.</div>`; return; }
-    multsBox.innerHTML = hits.map(({b,i})=>`<div class="mult-row">
-      <span class="mult-lbl">${i+1}. ${typeName(b.type)} <span class="muted">${b.horses.map(n=>n+'번').join(',')}</span></span>
-      <input class="inp mult-inp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="배당률" data-mi="${i}" value="${r.mults[i]!=null?r.mults[i]:''}"></div>`).join('');
-    multsBox.querySelectorAll('[data-mi]').forEach(inp => inp.oninput = e => { r.mults[inp.dataset.mi] = e.target.value===''?null:+e.target.value; });
-  }
+  const refreshGet = i => {
+    const b = rec.bets[i], m = +r.mults[i] || 0, box = $(`[data-get="${i}"]`, body);
+    if (box) { box.className = 'mc-get ' + (m > 0 ? 'up' : 'muted');
+      box.textContent = m > 0 ? `적중 → 획득 ${won((b.amount||0)*m)}` : '미적중 (배당률 비움)'; }
+  };
+  body.querySelectorAll('[data-mi]').forEach(inp => {
+    inp.oninput = e => { r.mults[inp.dataset.mi] = e.target.value === '' ? null : +e.target.value; refreshGet(+inp.dataset.mi); };
+    refreshGet(+inp.dataset.mi);
+  });
   body.querySelectorAll('[data-place]').forEach(row => row.addEventListener('click', e => {
-    const c = e.target.closest('[data-h]'); if (!c) return; r[row.dataset.place] = +c.dataset.h;
-    row.querySelectorAll('.numchip').forEach(x=>x.classList.toggle('active', x===c)); refreshMults(); }));
+    const c = e.target.closest('[data-h]'); if (!c) return;
+    const k = row.dataset.place;
+    r[k] = (r[k] === +c.dataset.h) ? null : +c.dataset.h;   // 다시 누르면 해제
+    row.querySelectorAll('.numchip').forEach(x => x.classList.toggle('active', +x.dataset.h === r[k]));
+  }));
   const resDrop=$('#resDrop',body), resFile=$('#resFile',body), resFileList=$('#resFileList',body);
   resDrop.onclick=()=>resFile.click();
   resFile.onchange=()=>{ const f=resFile.files[0]; if(!f)return; r.photo=f.name;
     resFileList.innerHTML=`<div class="filerow"><div class="ic">${icon('camera')}</div><div><div class="nm">${esc(f.name)}</div></div><button class="x" id="rmRes">×</button></div>`;
     $('#rmRes',resFileList).onclick=()=>{resFileList.innerHTML='';r.photo=null;}; };
   $('#calc', body).onclick = () => {
-    if (r.first == null) return toast('최소 1착은 선택해주세요 🐴');
     State.updateRecord(rec.id, { result: r, settled: true });
     go('resultDone', { q: 'id=' + rec.id });
   };
-  refreshMults();
   return shell({ title: '결과 입력', tab: 'setup', body, back: () => go('done') });
 });
 
