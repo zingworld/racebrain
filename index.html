@@ -539,6 +539,24 @@ html, body { overflow-x: hidden; overscroll-behavior: none; }
 .wipebtn { background: none; border: 0; color: var(--down); font-size: 12.5px; font-weight: 800; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
 .wipebtn svg { width: 15px; height: 15px; }
 
+/* ------- 추천 적중률 ------- */
+.acc-card { background: var(--grad-brown); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px 16px; margin-bottom: 10px; }
+.acc-h { font-size: 15px; margin-bottom: 10px; }
+.acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.acc-k { font-size: 12px; color: var(--muted); font-weight: 700; }
+.acc-v { font-size: 22px; font-weight: 900; margin-top: 4px; }
+.acc-v small { font-size: 13px; font-weight: 800; }
+.reco-row { display: flex; align-items: center; gap: 10px; }
+.reco-src { flex: none; width: 68px; font-size: 13px; font-weight: 800; }
+.reco-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rchip { width: 26px; height: 26px; border-radius: 50%; display: inline-grid; place-items: center;
+  font-size: 13px; font-weight: 800; background: var(--surface-3); color: var(--text-2); border: 1px solid var(--line); }
+.rchip.hit { background: var(--grad-amber); color: #2a1a0c; border-color: transparent; box-shadow: 0 0 0 2px rgba(230,172,92,.3); }
+.reco-tags { font-size: 12px; font-weight: 700; color: var(--muted); margin: 6px 0 0 78px; }
+.rbadge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.rbadge.ok { background: rgba(134,197,138,.18); color: var(--up); }
+.rbadge.no { background: var(--surface-3); color: var(--muted); }
+
 </style>
 </head>
 <body>
@@ -661,6 +679,14 @@ const PRERACES = [
    "5번 에이케이준 — 거리 최고기록 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
    "1번 불타오르네 — 레이팅 1위, 막판 스퍼트 1위. 연/복승 짝으로 좋아요.",
    "2번 빅토리라이프까지 삼복승 그림. 복병은 7번 마이티하이트."
+  ],
+  "expert": [
+   5,
+   8,
+   2,
+   1,
+   7,
+   9
   ]
  },
  {
@@ -734,6 +760,14 @@ const PRERACES = [
    "6번 걸작마루 — 거리 최고기록 1위, 속도지수 1위, 초반 스피드 2위. 축으로 추천!",
    "9번 스타플레이 — 복승률 1위, 최근1년 상금 1위. 연/복승 짝으로 좋아요.",
    "3번 나르샤루나까지 삼복승 그림. 복병은 8번 블리츠카라."
+  ],
+  "expert": [
+   4,
+   7,
+   6,
+   8,
+   9,
+   1
   ]
  },
  {
@@ -780,6 +814,14 @@ const PRERACES = [
    "6번 오아시스희망 — 복승률 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
    "8번 히어로히트 — 거리 최고기록 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
    "9번 모닝아리아까지 삼복승 그림."
+  ],
+  "expert": [
+   6,
+   8,
+   9,
+   7,
+   2,
+   1
   ]
  },
  {
@@ -856,6 +898,14 @@ const PRERACES = [
    "7번 파워풀아크틱 — 복승률 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
    "4번 신천하트 — 거리 최고기록 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
    "5번 관악산위시미까지 삼복승 그림. 복병은 1번 누리으뜸."
+  ],
+  "expert": [
+   3,
+   10,
+   7,
+   4,
+   1,
+   9
   ]
  },
  {
@@ -924,6 +974,14 @@ const PRERACES = [
    "3번 매직트리 — 복승률 1위, 최근6개월 상금 1위, 거리 최고기록 2위. 축으로 추천!",
    "2번 스피드범프 — 최근1년 상금 1위, 복승률 2위. 연/복승 짝으로 좋아요.",
    "8번 미스코코까지 삼복승 그림. 복병은 4번 원더풀밴드."
+  ],
+  "expert": [
+   3,
+   6,
+   2,
+   8,
+   9,
+   1
   ]
  },
  {
@@ -1012,6 +1070,14 @@ const PRERACES = [
    "6번 영광의스카이 — 레이팅 1위, 거리 승률 1위, 속도지수 1위. 축으로 추천!",
    "8번 로열호프케이 — 승률 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
    "2번 내길의에이스까지 삼복승 그림. 복병은 3번 글로리앤아너."
+  ],
+  "expert": [
+   4,
+   8,
+   7,
+   6,
+   3,
+   2
   ]
  },
  {
@@ -1098,6 +1164,14 @@ const PRERACES = [
    "3번 용비짱 — 레이팅 1위, 승률 1위, 복승률 1위. 축으로 추천!",
    "5번 퍼펙트한 — 속도지수 1위, 복승률 2위. 연/복승 짝으로 좋아요.",
    "7번 월드고트까지 삼복승 그림. 복병은 9번 투투플라잉."
+  ],
+  "expert": [
+   3,
+   7,
+   10,
+   11,
+   4,
+   6
   ]
  },
  {
@@ -1185,6 +1259,14 @@ const PRERACES = [
    "9번 파사퀸 — 레이팅 2위, 승률 2위, 최근1년 상금 2위. 축으로 추천!",
    "7번 세인트위너 — 최근1년 상금 1위, 거리 최고기록 2위. 연/복승 짝으로 좋아요.",
    "6번 어디든지까지 삼복승 그림. 복병은 2번 오송의별."
+  ],
+  "expert": [
+   9,
+   3,
+   6,
+   1,
+   8,
+   7
   ]
  },
  {
@@ -1271,6 +1353,14 @@ const PRERACES = [
    "9번 바벨트로페오 — 레이팅 1위, 거리 최고기록 1위, 최근1년 상금 1위. 축으로 추천!",
    "3번 경복아토스 — 승률 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
    "1번 스타포스까지 삼복승 그림. 복병은 2번 닥터솔라."
+  ],
+  "expert": [
+   3,
+   8,
+   2,
+   10,
+   1,
+   9
   ]
  },
  {
@@ -1356,6 +1446,14 @@ const PRERACES = [
    "5번 스위트송 — 레이팅 1위, 승률 1위, 거리 승률 1위. 축으로 추천!",
    "9번 타이거불패 — 최근1년 상금 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
    "2번 한강판타스틱까지 삼복승 그림. 복병은 1번 스트롱보스."
+  ],
+  "expert": [
+   9,
+   3,
+   2,
+   6,
+   5,
+   10
   ]
  },
  {
@@ -1442,6 +1540,14 @@ const PRERACES = [
    "9번 인디타이거 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
    "2번 네버기브업 — 최근1년 상금 1위, 레이팅 2위. 연/복승 짝으로 좋아요.",
    "3번 월드위너스맨까지 삼복승 그림. 복병은 6번 하늘만점."
+  ],
+  "expert": [
+   9,
+   10,
+   8,
+   1,
+   11,
+   2
   ]
  },
  {
@@ -1532,6 +1638,14 @@ const PRERACES = [
    "6번 블랙사탕 — 레이팅 1위, 승률 1위, 복승률 1위. 축으로 추천!",
    "8번 하이폴리 — 초반 스피드 1위, 거리 승률 2위. 연/복승 짝으로 좋아요.",
    "9번 골드뭉치까지 삼복승 그림. 복병은 4번 희망밴드."
+  ],
+  "expert": [
+   6,
+   4,
+   7,
+   8,
+   9,
+   5
   ]
  },
  {
@@ -1617,6 +1731,14 @@ const PRERACES = [
    "4번 미스스나이퍼 — 레이팅 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
    "5번 올더베스트 — 거리 승률 1위, 초반 스피드 1위. 연/복승 짝으로 좋아요.",
    "2번 대길의꿈까지 삼복승 그림. 복병은 8번 레몬트리."
+  ],
+  "expert": [
+   4,
+   5,
+   2,
+   8,
+   6,
+   10
   ]
  },
  {
@@ -1702,6 +1824,14 @@ const PRERACES = [
    "2번 라이브스타 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
    "3번 허쉬대보 — 승률 2위, 거리 최고기록 2위. 연/복승 짝으로 좋아요.",
    "6번 킹다이아까지 삼복승 그림. 복병은 7번 슈퍼선더."
+  ],
+  "expert": [
+   2,
+   7,
+   11,
+   10,
+   8,
+   6
   ]
  },
  {
@@ -1791,6 +1921,14 @@ const PRERACES = [
    "1번 레이스맨 — 거리 최고기록 1위, 복승률 2위, 속도지수 2위. 축으로 추천!",
    "8번 마가리타 — 레이팅 1위, 속도지수 1위. 연/복승 짝으로 좋아요.",
    "9번 오픈스카이까지 삼복승 그림. 복병은 4번 사막의꽃."
+  ],
+  "expert": [
+   6,
+   1,
+   9,
+   4,
+   11,
+   2
   ]
  },
  {
@@ -1877,6 +2015,14 @@ const PRERACES = [
    "3번 캐치레이스 — 거리 최고기록 1위, 최근1년 상금 1위, 최근6개월 상금 1위. 축으로 추천!",
    "2번 바로다나은 — 레이팅 1위, 복승률 1위. 연/복승 짝으로 좋아요.",
    "6번 퍼지스텝까지 삼복승 그림. 복병은 7번 남산벨트."
+  ],
+  "expert": [
+   3,
+   6,
+   2,
+   7,
+   4,
+   8
   ]
  },
  {
@@ -1960,6 +2106,14 @@ const PRERACES = [
    "2번 한센브레이싱 — 승률 1위, 복승률 1위, 거리 승률 1위. 축으로 추천!",
    "3번 지구라트 — 레이팅 1위, 최근1년 상금 1위. 연/복승 짝으로 좋아요.",
    "4번 제이에스로드까지 삼복승 그림. 복병은 1번 대한질주."
+  ],
+  "expert": [
+   3,
+   2,
+   4,
+   10,
+   6,
+   1
   ]
  }
 ];
@@ -2598,15 +2752,24 @@ route('resultDone', () => {
 /* =========================================================
    결과분석 (내 실제 기록)
    ========================================================= */
-let resMode = 'real', resOpen = null;
+let resMode = 'real', resOpen = null, resView = 'bets';
 route('results', () => {
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="tabs" id="modeTabs">
+    <div class="seg seg--pill" id="viewSeg" style="margin-bottom:14px">
+      <button data-v="bets" class="${resView==='bets'?'active':''}">🎫 내 배팅 성적</button>
+      <button data-v="reco" class="${resView==='reco'?'active':''}">🎯 추천 적중률</button></div>
+    <div class="tabs" id="modeTabs" style="${resView==='reco'?'display:none':''}">
       <button class="tab ${resMode==='real'?'active':''}" data-m="real">실전</button>
       <button class="tab ${resMode==='mock'?'active':''}" data-m="mock">모의</button></div>
     <div id="resBody"></div>`;
   const rb = $('#resBody', body);
+  $('#viewSeg', body).addEventListener('click', e => { const v = e.target.closest('[data-v]'); if (!v) return;
+    resView = v.dataset.v;
+    body.querySelectorAll('#viewSeg button').forEach(x => x.classList.toggle('active', x === v));
+    $('#modeTabs', body).style.display = resView === 'reco' ? 'none' : '';
+    resView === 'reco' ? renderReco() : render2();
+  });
   function render2() {
     const s = recStats(resMode), oh = overallHit(s.byType), dates = recDates(resMode);
     let html = '';
@@ -2661,11 +2824,66 @@ route('results', () => {
         :`<button class="btn btn--sm" style="width:100%;margin-top:10px" data-enter2="${rec.id}">${icon('medal')} 결과 입력하기</button>`}
     </div>`;
   }
+  // ===== 추천 적중률 뷰 =====
+  function recoRaces() {
+    const seen = {}, out = [];
+    State.records.filter(r => r.settled && r.result && r.result.first != null).forEach(rec => {
+      const key = rec.region + '|' + rec.raceNo + '|' + rec.date;
+      if (seen[key]) return;
+      const pr = DB.preRaces.find(p => p.region === rec.region && p.raceNo === rec.raceNo && p.date === rec.date);
+      if (!pr) return;
+      seen[key] = 1; out.push({ rec, pr });
+    });
+    return out;
+  }
+  function renderReco() {
+    const races = recoRaces();
+    if (!races.length) {
+      rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.7">
+        아직 데이터가 없어요.<br><b style="color:var(--text-2)">브레인 분석이 있는 경주</b>에 배팅하고<br>결과(착순)를 입력하면 여기 쌓여요! 📈<br>
+        <span style="font-size:12px">브레인 vs 전문가, 누가 더 잘 맞히는지 비교해봐요.</span></div>`;
+      return;
+    }
+    const top3of = rec => [rec.result.first, rec.result.second, rec.result.third].filter(x => x != null);
+    const pickHit = (recs, top3) => recs.some(n => top3.includes(n));
+    let bP = 0, bW = 0, eP = 0, eW = 0;
+    races.forEach(({ rec, pr }) => {
+      const t3 = top3of(rec);
+      const b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6);
+      if (pickHit(b6, t3)) bP++; if (pickHit(b6.slice(0, 3), t3)) bW++;
+      if (pickHit(e6, t3)) eP++; if (pickHit(e6.slice(0, 3), t3)) eW++;
+    });
+    const N = races.length, r = n => Math.round(n / N * 100);
+    const accCard = (icn, title, pick, win) => `<div class="acc-card">
+      <div class="acc-h">${icn} <b>${title}</b></div>
+      <div class="acc-grid">
+        <div><div class="acc-k">pick 적중률 <span class="muted">(6마)</span></div><div class="acc-v">${r(pick)}<small>%</small> <small class="muted">${pick}/${N}</small></div></div>
+        <div><div class="acc-k">win 적중률 <span class="muted">(3마)</span></div><div class="acc-v">${r(win)}<small>%</small> <small class="muted">${win}/${N}</small></div></div>
+      </div></div>`;
+    const chips = (recs, t3, n) => recs.slice(0, n).map(no => `<span class="rchip ${t3.includes(no) ? 'hit' : ''}">${no}</span>`).join('');
+    const badge = ok => `<span class="rbadge ${ok ? 'ok' : 'no'}">${ok ? '적중' : '미적중'}</span>`;
+    rb.innerHTML = `
+      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">결과 입력한 <b>${N}경주</b> 기준 · 실제 1·2·3착에 든 추천마는 <span class="rchip hit" style="width:20px;height:20px;font-size:11px">●</span> 로 표시</div>
+      ${accCard('🧠', '브레인', bP, bW)}
+      ${accCard('📰', '전문가', eP, eW)}
+      <div class="section-t">경주별 상세</div>
+      ${races.map(({ rec, pr }) => {
+        const t3 = top3of(rec), b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6);
+        return `<div class="card" style="margin-bottom:10px">
+          <div class="row between" style="margin-bottom:8px"><b>${esc(rec.label)}</b><span class="muted" style="font-size:12px">착순 ${t3.join('·')}</span></div>
+          <div class="reco-row"><span class="reco-src">🧠 브레인</span><div class="reco-chips">${chips(b6, t3, 6)}</div></div>
+          <div class="reco-tags">pick ${badge(pickHit(b6, t3))} · win ${badge(pickHit(b6.slice(0,3), t3))}</div>
+          <div class="reco-row" style="margin-top:8px"><span class="reco-src">📰 전문가</span><div class="reco-chips">${chips(e6, t3, 6)}</div></div>
+          <div class="reco-tags">pick ${badge(pickHit(e6, t3))} · win ${badge(pickHit(e6.slice(0,3), t3))}</div>
+        </div>`;
+      }).join('')}`;
+  }
+
   $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
     body.querySelectorAll('#modeTabs .tab').forEach(x=>x.classList.toggle('active',x===m)); render2(); });
   rb.addEventListener('click', e => { const b=e.target.closest('[data-enter2]'); if(b) go('result',{q:'id='+b.dataset.enter2}); });
-  render2();
-  return shell({ title: '결과분석', sub: '내 배팅 성적', tab: 'results', body });
+  resView === 'reco' ? renderReco() : render2();
+  return shell({ title: '결과분석', sub: '내 배팅 성적 · 추천 적중률', tab: 'results', body });
 });
 
 /* =========================================================
