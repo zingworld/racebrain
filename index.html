@@ -528,6 +528,17 @@ html, body { overflow-x: hidden; overscroll-behavior: none; }
 .mc-x { font-size: 14px; font-weight: 800; color: var(--text-2); flex: none; }
 .mc-get { font-size: 12.5px; font-weight: 800; margin-top: 8px; }
 
+/* 결과입력: 적중/미적중 카드 */
+.mult-card.is-hit { border-color: rgba(230,172,92,.45); background: var(--surface-2); }
+.mult-card.is-miss { opacity: .7; }
+.hbadge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(230,172,92,.18); color: var(--amber-2); margin-left: 6px; }
+.mc-get.miss { color: var(--down); }
+/* 결과분석: 날짜(회차) 소계 */
+.daysum { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px 10px; font-size: 13px; }
+/* 회차 삭제 버튼 */
+.wipebtn { background: none; border: 0; color: var(--down); font-size: 12.5px; font-weight: 800; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+.wipebtn svg { width: 15px; height: 15px; }
+
 </style>
 </head>
 <body>
@@ -2007,10 +2018,10 @@ function evalHit(bet, result) {
     default:         return false;
   }
 }
-// 배팅 정산: 배당률(mult)을 입력한 배팅만 적중으로 계산 (착순 없이도 OK)
+// 배팅 정산: 적중 여부는 착순(경마 규칙)으로 판정, 배당률(mult)은 획득 계산에만 사용
 function evalBet(bet, result) {
+  const hit = evalHit(bet, result);
   const mult = (result && result.mults && +result.mults[bet.idx]) || 0;
-  const hit = mult > 0;
   return { hit, mult, get: hit ? Math.round((bet.amount || 0) * mult) : 0 };
 }
 // 레코드 정산 요약
@@ -2082,6 +2093,8 @@ const State = {
     const r = this.getRecord(id);
     if (r) { Object.assign(r, patch); this._saveRecords(); }
   },
+  deleteByDate(date) { this.records = this.records.filter(r => r.date !== date); this._saveRecords(); },
+  deleteRecord(id) { this.records = this.records.filter(r => r.id !== id); this._saveRecords(); },
 };
 
 /* ---------- 포맷 유틸 ---------- */
@@ -2489,24 +2502,14 @@ route('result', () => {
   const body = document.createElement('div');
   body.innerHTML = `
     <div class="pony-line" style="margin:2px 0 16px">${pony({ size: 56 })}
-      <div class="speech"><b>${esc(rec.label)}</b> 결과를 입력해주세요.<br><b>맞은 배팅에만 배당률</b>을 적으면 돼요! (안 적으면 미적중)</div></div>
+      <div class="speech"><b>${esc(rec.label)}</b> 결과예요!<br><b>착순</b>을 넣으면 적중이 자동 판정되고,<br>적중한 배팅에 <b>배당률</b>만 적으면 정산돼요.</div></div>
 
-    <div class="section-t">${icon('coin')} 배팅별 배당률 <span class="muted" style="font-weight:700">· 맞은 것만 입력</span></div>
-    <div id="mults">
-      ${rec.bets.map((b,i)=>`<div class="mult-card">
-        <div class="mc-top"><span class="mc-type">${i+1}. ${typeName(b.type)}</span><span class="mc-no">${b.horses.map(n=>n+'번').join(', ')}</span></div>
-        <div class="mc-in">
-          <span class="mc-lbl">배당률</span>
-          <input class="inp mult-inp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="예) 4.2 (안 맞으면 비워두기)" data-mi="${i}" value="${r.mults[i]!=null?r.mults[i]:''}">
-          <span class="mc-x">배</span>
-        </div>
-        <div class="mc-get muted" data-get="${i}"></div>
-      </div>`).join('')}
-    </div>
-
-    <div class="section-t">착순 기록 <span class="muted" style="font-weight:700">· 선택</span></div>
+    <div class="section-t">🏁 착순 입력 <span class="muted" style="font-weight:700">· 1·2·3착 마번</span></div>
     ${places.map(([k,l])=>`<div class="mini-t" style="margin:6px 2px 6px">${l}</div>
       <div class="num-grid" data-place="${k}">${Array.from({length:12},(_,i)=>i+1).map(n=>`<button class="numchip ${r[k]===n?'active':''}" data-h="${n}">${n}</button>`).join('')}</div>`).join('')}
+
+    <div class="section-t">${icon('coin')} 배팅별 결과 <span class="muted" style="font-weight:700">· 적중 배팅에 배당률 입력</span></div>
+    <div id="mults"></div>
 
     <div class="section-t">결과 사진 <span class="muted" style="font-weight:700">· 선택</span></div>
     <div class="drop" id="resDrop" style="padding:18px"><div class="ic">${icon('camera')}</div>
@@ -2515,27 +2518,46 @@ route('result', () => {
 
     <div style="margin-top:22px"><button class="btn" id="calc">${icon('check')} 결과 확인하기</button></div>`;
 
-  const refreshGet = i => {
+  const multsBox = $('#mults', body);
+  function renderBets() {
+    const done = r.first != null;
+    multsBox.innerHTML = rec.bets.map((b, i) => {
+      const hit = done && evalHit({ ...b, idx: i }, r);
+      const no = b.horses.map(n => n + '번').join(', ');
+      let inner;
+      if (!done) inner = `<div class="mc-get muted">착순을 입력하면 적중 판정돼요</div>`;
+      else if (hit) inner = `<div class="mc-in"><span class="mc-lbl">배당률</span>
+          <input class="inp mult-inp" type="number" inputmode="decimal" step="0.1" min="0" placeholder="예) 4.2" data-mi="${i}" value="${r.mults[i]!=null?r.mults[i]:''}"><span class="mc-x">배</span></div>
+        <div class="mc-get up" data-get="${i}"></div>`;
+      else inner = `<div class="mc-get miss">✗ 미적중 (착순 불일치)</div>`;
+      return `<div class="mult-card ${done?(hit?'is-hit':'is-miss'):''}">
+        <div class="mc-top"><span class="mc-type">${i+1}. ${typeName(b.type)} ${done?(hit?'<span class="hbadge">적중</span>':''):''}</span><span class="mc-no">${no}</span></div>
+        ${inner}</div>`;
+    }).join('');
+    multsBox.querySelectorAll('[data-mi]').forEach(inp => {
+      inp.oninput = e => { r.mults[inp.dataset.mi] = e.target.value === '' ? null : +e.target.value; refreshGet(+inp.dataset.mi); };
+      refreshGet(+inp.dataset.mi);
+    });
+  }
+  function refreshGet(i) {
     const b = rec.bets[i], m = +r.mults[i] || 0, box = $(`[data-get="${i}"]`, body);
-    if (box) { box.className = 'mc-get ' + (m > 0 ? 'up' : 'muted');
-      box.textContent = m > 0 ? `적중 → 획득 ${won((b.amount||0)*m)}` : '미적중 (배당률 비움)'; }
-  };
-  body.querySelectorAll('[data-mi]').forEach(inp => {
-    inp.oninput = e => { r.mults[inp.dataset.mi] = e.target.value === '' ? null : +e.target.value; refreshGet(+inp.dataset.mi); };
-    refreshGet(+inp.dataset.mi);
-  });
+    if (box) box.textContent = m > 0 ? `획득 ${won((b.amount||0)*m)}` : '배당률을 입력하세요';
+  }
   body.querySelectorAll('[data-place]').forEach(row => row.addEventListener('click', e => {
     const c = e.target.closest('[data-h]'); if (!c) return;
     const k = row.dataset.place;
     r[k] = (r[k] === +c.dataset.h) ? null : +c.dataset.h;   // 다시 누르면 해제
     row.querySelectorAll('.numchip').forEach(x => x.classList.toggle('active', +x.dataset.h === r[k]));
+    renderBets();
   }));
+  renderBets();
   const resDrop=$('#resDrop',body), resFile=$('#resFile',body), resFileList=$('#resFileList',body);
   resDrop.onclick=()=>resFile.click();
   resFile.onchange=()=>{ const f=resFile.files[0]; if(!f)return; r.photo=f.name;
     resFileList.innerHTML=`<div class="filerow"><div class="ic">${icon('camera')}</div><div><div class="nm">${esc(f.name)}</div></div><button class="x" id="rmRes">×</button></div>`;
     $('#rmRes',resFileList).onclick=()=>{resFileList.innerHTML='';r.photo=null;}; };
   $('#calc', body).onclick = () => {
+    if (r.first == null) return toast('최소 1착은 입력해주세요 🐴');
     State.updateRecord(rec.id, { result: r, settled: true });
     go('resultDone', { q: 'id=' + rec.id });
   };
@@ -2601,7 +2623,13 @@ route('results', () => {
         <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
       </div></div>`;
     dates.forEach(({date, recs}) => {
-      html += `<div class="section-t">${date} · ${recs.length}경주</div>`;
+      // 회차(날짜)별 소계
+      let db = 0, dp = 0, settledN = 0;
+      recs.forEach(rec => { const su = recSummary(rec); db += su.bet; if (rec.settled) { dp += su.payout; settledN++; } });
+      const droi = db ? Math.round(dp / db * 100) : 0, dnet = dp - db;
+      html += `<div class="section-t">${date} · ${recs.length}경주</div>
+        <div class="daysum"><div><span class="muted">배팅 ${won(db)} → 배당 ${won(dp)}</span></div>
+          ${settledN ? `<div class="row gap8"><span class="roi-pill ${droi>=100?'up':'down'}" style="font-size:12px;padding:3px 9px">${droi}%</span><span class="${dnet>=0?'up':'down'}" style="font-weight:800;font-size:13px">${dnet>=0?'+':'-'}${won(Math.abs(dnet))}</span></div>` : `<span class="muted" style="font-size:12px">결과 대기</span>`}</div>`;
       recs.forEach(rec => {
         const su = recSummary(rec), open = resOpen === rec.id;
         const pill = rec.settled ? `<span class="roi-pill ${su.roi>=100?'up':'down'}">${su.roi}%</span>`
@@ -2658,9 +2686,28 @@ route('profile', () => {
       <div class="kv"><span class="k">모의</span><span class="v">${ms.sessions}회 · ${ms.races}경주 · 회수율 ${roi(ms)}%</span></div>
       <div class="kv"><span class="k">저장된 기록</span><span class="v">${State.records.length}건</span></div>
     </div>
+    <div class="section-t">회차별 초기화 <span class="muted" style="font-weight:700">· 날짜(회차) 선택 삭제</span></div>
+    <div id="wipeDates"></div>
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
       <button class="btn btn--ghost" id="resetOnb">온보딩 다시 보기</button>
-      <button class="btn btn--ghost" id="wipe" style="color:var(--down)">모든 기록 초기화</button></div>`;
+      <button class="btn btn--ghost" id="wipe" style="color:var(--down)">＋ 모든 기록 초기화</button></div>`;
+  // 회차(날짜)별 목록 + 삭제
+  const wd = $('#wipeDates', body);
+  function renderWipe() {
+    const map = {};
+    State.records.forEach(r => { map[r.date] = map[r.date] || { real: 0, mock: 0 }; map[r.date][r.mode]++; });
+    const dates = Object.keys(map).sort((a, b) => a < b ? 1 : -1);
+    if (!dates.length) { wd.innerHTML = `<div class="card" style="text-align:center;padding:18px;color:var(--muted);font-size:13px">삭제할 회차가 없어요.</div>`; return; }
+    wd.innerHTML = `<div class="card" style="padding:6px 14px">${dates.map(d => {
+      const m = map[d], parts = [m.real ? `실전 ${m.real}` : '', m.mock ? `모의 ${m.mock}` : ''].filter(Boolean).join(' · ');
+      return `<div class="kv"><span class="k">${d} <span class="muted" style="font-weight:600">· ${parts}경주</span></span>
+        <button class="wipebtn" data-wd="${d}">${icon('trash')} 삭제</button></div>`;
+    }).join('')}</div>`;
+    wd.querySelectorAll('[data-wd]').forEach(b => b.onclick = () => {
+      if (confirm(`${b.dataset.wd} 회차 기록을 지울까요?`)) { State.deleteByDate(b.dataset.wd); toast('해당 회차를 삭제했어요'); render(); }
+    });
+  }
+  renderWipe();
   $('#saveName', body).onclick = () => { State.saveName($('#pfName', body).value || '경마러'); toast('저장했어요 🐴'); };
   $('#resetOnb', body).onclick = () => { store.del('rb.name'); State.user.name=''; go('onboarding'); };
   $('#wipe', body).onclick = () => { if (confirm('저장된 배팅 기록을 모두 지울까요?')) { State.records=[]; State._saveRecords(); toast('기록을 초기화했어요'); render(); } };
