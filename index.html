@@ -557,6 +557,30 @@ html, body { overflow-x: hidden; overscroll-behavior: none; }
 .rbadge.ok { background: rgba(134,197,138,.18); color: var(--up); }
 .rbadge.no { background: var(--surface-3); color: var(--muted); }
 
+/* ------- 결과분석 개별 삭제 ------- */
+.race-headrow { display: flex; align-items: stretch; }
+.del-race { flex: none; width: 46px; background: none; border: 0; border-left: 1px solid var(--line);
+  color: var(--muted); cursor: pointer; display: grid; place-items: center; }
+.del-race svg { width: 18px; height: 18px; }
+.del-race:active { transform: scale(.9); color: var(--down); }
+.race-item .race-head { border-radius: 0; }
+
+/* ------- 고배당(복병) 칩 ------- */
+.rchip.longshot { background: var(--surface); color: var(--amber-2); border: 2px solid var(--amber-2); text-decoration: underline; }
+
+/* ------- 모달(팝업) ------- */
+.modal-ov { position: absolute; inset: 0; z-index: 100; background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center; padding: 20px; animation: fade .2s ease; }
+.modal-card { width: 100%; max-width: 380px; max-height: 80%; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px; box-shadow: var(--shadow); }
+.modal-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 16px; }
+.modal-x { background: var(--surface-3); border: 0; color: var(--text); width: 30px; height: 30px; border-radius: 9px; font-size: 15px; cursor: pointer; }
+.modal-close { margin-top: 16px; }
+.combo-t { font-size: 13px; font-weight: 800; color: var(--amber-2); margin-bottom: 8px; }
+.combo-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.combo-n { width: 20px; height: 20px; border-radius: 6px; background: var(--surface-3); color: var(--muted);
+  font-size: 12px; font-weight: 800; display: grid; place-items: center; flex: none; }
+
 </style>
 </head>
 <body>
@@ -2327,6 +2351,20 @@ function tabbar(active) {
 app.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) go(t.dataset.tab); });
 
 function toast(msg) { const t = el(`<div class="toast">${esc(msg)}</div>`); app.appendChild(t); setTimeout(() => t.remove(), 1900); }
+function modal(title, innerHTML) {
+  const m = el(`<div class="modal-ov">
+    <div class="modal-card">
+      <div class="modal-h"><b>${title}</b><button class="modal-x" aria-label="닫기">✕</button></div>
+      <div class="modal-body">${innerHTML}</div>
+      <button class="btn modal-close">닫기</button>
+    </div></div>`);
+  app.appendChild(m);
+  const close = () => m.remove();
+  m.querySelector('.modal-x').onclick = close;
+  m.querySelector('.modal-close').onclick = close;
+  m.onclick = e => { if (e.target === m) close(); };
+  return m;
+}
 const typeName = id => betType(id).name;
 const regShort = r => (r === '서울' ? '서울' : '부경');
 
@@ -2449,9 +2487,17 @@ route('brain', () => {
       Object.assign(State.draft, { region: r.region, raceNo: r.raceNo, date: r.date, mode: 'real' });
       go('betting');
     };
+    const cb = $('[data-combo]', node);
+    if (cb) cb.onclick = e => { e.stopPropagation(); showCombos(r); };
     return node;
   }
   function brainDetail(r) {
+    const e6 = (r.expert || []).slice(0, 6);
+    const expertHtml = e6.length ? `
+      <div class="section-t" style="margin:16px 2px 8px">📰 전문가 추천 <span class="muted" style="font-weight:700">· 경마지 (마지막=고배당)</span></div>
+      <div class="reco-chips" style="padding:0 2px">
+        ${e6.map((no, i) => `<span class="rchip ${i === e6.length-1 ? 'longshot' : ''}">${no}</span>`).join('')}</div>
+      <div class="muted" style="font-size:11px;margin:8px 2px 0"><span class="rchip longshot" style="width:16px;height:16px;font-size:10px;vertical-align:-3px">●</span> 표시 = 인기 낮은 고배당 복병</div>` : '';
     return `<div class="race-detail">
       ${r.ranked.slice(0, 6).map(h => `
         <div class="brank ${h.rank<=3?'top':''}">
@@ -2461,9 +2507,31 @@ route('brain', () => {
           <div class="bconf">${h.conf}%</div></div>`).join('')}
       <div class="card card--glow" style="margin-top:10px">
         ${(r.comments||[]).map(c=>`<div style="display:flex;gap:8px;padding:5px 0;font-size:13.5px;line-height:1.55"><span style="color:var(--amber)">▹</span><span>${esc(c)}</span></div>`).join('')}</div>
-      <div class="muted" style="font-size:11px;margin:10px 0 4px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
+      ${expertHtml}
+      <div class="muted" style="font-size:11px;margin:12px 0 4px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
+      <button class="btn btn--ghost" data-combo style="margin-top:10px">${icon('spark')} 추천 조합 보기</button>
       <button class="btn" data-bet style="margin-top:10px">${icon('coin')} 이 경주 배팅하러 가기</button>
     </div>`;
+  }
+  // 브레인+전문가 합성 조합 (복연승 3 · 삼복승 3)
+  function showCombos(r) {
+    const b6 = r.ranked.slice(0, 6).map(h => h.no), e6 = (r.expert || []).slice(0, 6);
+    const score = {};
+    b6.forEach((n, i) => score[n] = (score[n] || 0) + (6 - i));
+    e6.forEach((n, i) => score[n] = (score[n] || 0) + (6 - i));
+    const m = Object.keys(score).map(Number).sort((a, b) => score[b] - score[a]);
+    const both = n => b6.includes(n) && e6.includes(n);
+    const q = [[m[0],m[1]], [m[0],m[2]], [m[1],m[2]]].filter(p => p.every(x => x != null));
+    const t = [[m[0],m[1],m[2]], [m[0],m[1],m[3]], [m[0],m[2],m[3]]].filter(p => p.every(x => x != null));
+    const chips = arr => `<div class="reco-chips">${arr.map(n => `<span class="rchip ${both(n)?'hit':''}">${n}</span>`).join('')}</div>`;
+    const body = `
+      <div class="muted" style="font-size:12px;margin-bottom:10px;line-height:1.5">브레인+전문가 <b>공통 추천</b>은 <span class="rchip hit" style="width:16px;height:16px;font-size:10px;vertical-align:-3px">●</span>. 상위 합성 순위로 조합했어요.</div>
+      <div class="combo-t">복연승식 · 2두</div>
+      ${q.map((p,i)=>`<div class="combo-row"><span class="combo-n">${i+1}</span>${chips(p)}</div>`).join('')}
+      <div class="combo-t" style="margin-top:14px">삼복승식 · 3두</div>
+      ${t.map((p,i)=>`<div class="combo-row"><span class="combo-n">${i+1}</span>${chips(p)}</div>`).join('')}
+      <div class="muted" style="font-size:11px;margin-top:12px;text-align:center">참고용 조합이에요 · 실제 배팅은 신중히!</div>`;
+    modal(`${regShort(r.region)} ${r.raceNo}R 추천 조합`, body);
   }
   // ranked에 rank 부여
   DB.preRaces.forEach(r => r.ranked.forEach((h, i) => h.rank = i + 1));
@@ -2798,16 +2866,24 @@ route('results', () => {
         const pill = rec.settled ? `<span class="roi-pill ${su.roi>=100?'up':'down'}">${su.roi}%</span>`
           : `<span class="roi-pill pend" data-enter="${rec.id}">결과입력</span>`;
         html += `<div class="race-item ${open?'open':''}">
-          <button class="race-head" data-open="${rec.id}">
-            <div><div class="race-name">${esc(rec.label)} <span class="badge ${rec.mode==='mock'?'badge--mock':''}">${rec.mode==='real'?'실전':'모의'}</span></div>
-              <div class="muted" style="font-size:12px;margin-top:3px">배팅 ${won(su.bet)} · ${rec.bets.length}건${rec.settled?'':' · 결과 대기'}</div></div>
-            ${pill}</button>
+          <div class="race-headrow">
+            <button class="race-head" data-open="${rec.id}" style="flex:1">
+              <div><div class="race-name">${esc(rec.label)} <span class="badge ${rec.mode==='mock'?'badge--mock':''}">${rec.mode==='real'?'실전':'모의'}</span></div>
+                <div class="muted" style="font-size:12px;margin-top:3px">배팅 ${won(su.bet)} · ${rec.bets.length}건${rec.settled?'':' · 결과 대기'}</div></div>
+              ${pill}</button>
+            <button class="del-race" data-del="${rec.id}" aria-label="경기 삭제">${icon('trash')}</button>
+          </div>
           ${open ? raceDetail(rec, su) : ''}</div>`;
       });
     });
     rb.innerHTML = html;
     rb.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { resOpen = resOpen===b.dataset.open?null:b.dataset.open; render2(); });
     rb.querySelectorAll('[data-enter]').forEach(b => b.onclick = (e) => { e.stopPropagation(); go('result', { q:'id='+b.dataset.enter }); });
+    rb.querySelectorAll('[data-del]').forEach(b => b.onclick = (e) => { e.stopPropagation();
+      const rec = State.getRecord(b.dataset.del);
+      if (confirm(`「${rec ? rec.label : '이 경기'}」 기록을 정말 삭제하시겠습니까?`)) {
+        State.deleteRecord(b.dataset.del); resOpen = null; toast('삭제했어요'); render2();
+      }});
   }
   function raceDetail(rec, su) {
     const rr = rec.result;
