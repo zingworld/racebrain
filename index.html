@@ -4018,6 +4018,13 @@ function summaryCard(mode) {
   if (!s.races) return el(`<div class="card" style="text-align:center;padding:26px 18px">
     <div class="muted" style="font-size:14px;line-height:1.6">아직 <b style="color:var(--text-2)">${mode==='real'?'실전':'모의'}</b> 기록이 없어요.<br>레이스에 참여하면 여기에 성적이 쌓여요! 🐎</div></div>`);
   const oh = overallHit(s.byType);
+  // 배팅타입별 적중률 (내가 배팅한 타입만)
+  const rows = DB.betTypes.filter(t => s.byType[t.id]).map(t => {
+    const bt = s.byType[t.id] || [0, 0], rate = hitRate(bt);
+    return `<div class="hit-row"><span class="hit-name">${t.name.replace('식','')}</span>
+      <div class="hit-bar ${rate==null?'none':''}"><i style="width:${rate||0}%"></i></div>
+      <span class="hit-val">${rate!=null?rate+'%':'–'} <small>(${bt[1]}/${bt[0]})</small></span></div>`;
+  }).join('');
   return el(`<div class="hero"><div class="glowline"></div>
     <div class="cnt" style="margin-bottom:12px"><b>${s.sessions}</b><span class="u">회</span><span class="dot">·</span><b>${s.races}</b><span class="u">경주</span></div>
     <div class="stat-grid">
@@ -4025,8 +4032,9 @@ function summaryCard(mode) {
       <div class="stat"><div class="k">배당금액</div><div class="v">${won(s.payout)}</div>
         <div class="delta ${net(s)>=0?'up':'down'}">${net(s)>=0?'▲':'▼'} ${won(Math.abs(net(s)))}</div></div>
       <div class="stat big"><div class="row between"><div class="k">회수율</div><div class="v" style="font-size:18px">${roi(s)}<small>%</small></div></div></div>
-      <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
-    </div></div>`);
+    </div>
+    <div class="mini-t" style="margin:16px 2px 6px">적중률 <span class="muted" style="font-weight:700">· 배팅타입별 (전체 ${oh.rate}%)</span></div>
+    ${rows}</div>`);
 }
 let homeMode = 'real';
 route('home', () => {
@@ -4042,11 +4050,14 @@ route('home', () => {
   body.appendChild(head);
 
   if (pre.length) {
+    const dates = [...new Set(pre.map(r => r.date))].sort((a, b) => a < b ? 1 : -1);
+    const latest = dates[0], cnt = pre.filter(r => r.date === latest).length;
+    const mock = (pre.find(r => r.date === latest) || {}).mode === 'mock';
     const b = el(`<div class="card card--glow" id="brainCard" style="margin-top:16px;cursor:pointer">
       <div class="row between"><div><div style="font-weight:800">${icon('spark')} 브레인 분석 준비 완료</div>
-      <div class="muted" style="font-size:13px;margin-top:4px">${pre[0].date} · ${pre.length}경주 예상순위</div></div>
+      <div class="muted" style="font-size:13px;margin-top:4px">${latest} <b style="color:var(--amber-2)">${mock?'모의':'실전'}</b> · ${cnt}경주 예상순위</div></div>
       <span style="color:var(--amber-2);font-weight:800">보기 ${icon('arrow')}</span></div></div>`);
-    b.onclick = () => go('brain');
+    b.onclick = () => { brainDate = latest; go('brain'); };
     body.appendChild(b);
   }
 
@@ -4066,7 +4077,7 @@ route('home', () => {
 /* =========================================================
    브레인 — 사전 분석된 경주 (날짜 → 라운드 → 분석)
    ========================================================= */
-let brainOpen = null;
+let brainOpen = null, brainDate = null;
 route('brain', () => {
   const body = document.createElement('div');
   body.appendChild(el(`<div class="pony-line" style="margin-bottom:14px">${pony({ size: 52 })}
@@ -4076,14 +4087,22 @@ route('brain', () => {
     body.appendChild(el(`<div class="card" style="text-align:center;padding:26px;color:var(--muted)">아직 분석된 경주가 없어요.</div>`));
     return shell({ title: '브레인 분석', tab: 'brain', body });
   }
-  // 날짜별 그룹 (preRaces는 시간순 정렬돼 있음)
+  // 날짜별 그룹 (데이터 있는 날만, 최신 먼저)
   const byDate = {};
   DB.preRaces.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+  const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
+  if (!brainDate || !byDate[brainDate]) brainDate = dates[0];
+
+  const dateRow = el(`<div class="date-row">${dates.map(d => {
+    const mock = byDate[d][0].mode === 'mock';
+    return `<button class="date-chip ${d===brainDate?'active':''}" data-date="${d}">${fmtMD(d)} <span class="muted" style="font-weight:600">${mock?'모의':'실전'}</span></button>`;
+  }).join('')}</div>`);
+  dateRow.addEventListener('click', e => { const b = e.target.closest('[data-date]'); if (!b) return; brainDate = b.dataset.date; brainOpen = null; render(); });
+  body.appendChild(dateRow);
+
   const list = el('<div></div>');
-  Object.keys(byDate).sort((a, b) => a < b ? 1 : -1).forEach(date => {
-    list.appendChild(el(`<div class="section-t">${date} · ${byDate[date].length}경주</div>`));
-    byDate[date].forEach(r => list.appendChild(brainRow(r)));
-  });
+  list.appendChild(el(`<div class="section-t">${brainDate} · ${byDate[brainDate].length}경주</div>`));
+  byDate[brainDate].forEach(r => list.appendChild(brainRow(r)));
   body.appendChild(list);
 
   function brainRow(r) {
