@@ -4462,7 +4462,7 @@ route('resultDone', () => {
 /* =========================================================
    결과분석 (내 실제 기록)
    ========================================================= */
-let resMode = 'real', resOpen = null, resView = 'bets';
+let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null;
 route('results', () => {
   const body = document.createElement('div');
   body.innerHTML = `
@@ -4555,13 +4555,20 @@ route('results', () => {
     return out;
   }
   function renderReco() {
-    const races = recoRaces();
-    if (!races.length) {
+    const all = recoRaces();
+    if (!all.length) {
       rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.7">
         아직 데이터가 없어요.<br><b style="color:var(--text-2)">브레인 분석이 있는 경주</b>에 배팅하고<br>결과(착순)를 입력하면 여기 쌓여요! 📈<br>
         <span style="font-size:12px">브레인 vs 전문가, 누가 더 잘 맞히는지 비교해봐요.</span></div>`;
       return;
     }
+    // 날짜별 그룹 (데이터 있는 날만, 최신 먼저)
+    const byDate = {};
+    all.forEach(o => { (byDate[o.rec.date] = byDate[o.rec.date] || []).push(o); });
+    const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
+    if (!resRecoDate || !byDate[resRecoDate]) resRecoDate = dates[0];
+    const races = byDate[resRecoDate];
+
     const top3of = rec => [rec.result.first, rec.result.second, rec.result.third].filter(x => x != null);
     const pickHit = (recs, top3) => recs.some(n => top3.includes(n));
     let bP = 0, bW = 0, eP = 0, eW = 0;
@@ -4572,6 +4579,10 @@ route('results', () => {
       if (pickHit(e6, t3)) eP++; if (pickHit(e6.slice(0, 3), t3)) eW++;
     });
     const N = races.length, r = n => Math.round(n / N * 100);
+    const dateChips = `<div class="date-row" id="recoDates">${dates.map(d => {
+      const mock = byDate[d][0].rec.mode === 'mock';
+      return `<button class="date-chip ${d===resRecoDate?'active':''}" data-rd="${d}">${fmtMD(d)} <span class="muted" style="font-weight:600">${mock?'모의':'실전'}</span></button>`;
+    }).join('')}</div>`;
     const accCard = (icn, title, pick, win) => `<div class="acc-card">
       <div class="acc-h">${icn} <b>${title}</b></div>
       <div class="acc-grid">
@@ -4581,7 +4592,8 @@ route('results', () => {
     const chips = (recs, t3, n) => recs.slice(0, n).map(no => `<span class="rchip ${t3.includes(no) ? 'hit' : ''}">${no}</span>`).join('');
     const badge = ok => `<span class="rbadge ${ok ? 'ok' : 'no'}">${ok ? '적중' : '미적중'}</span>`;
     rb.innerHTML = `
-      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">결과 입력한 <b>${N}경주</b> 기준 · 실제 1·2·3착에 든 추천마는 <span class="rchip hit" style="width:20px;height:20px;font-size:11px">●</span> 로 표시</div>
+      ${dateChips}
+      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate} · 결과 입력한 <b>${N}경주</b> 기준 · 실제 1·2·3착에 든 추천마는 <span class="rchip hit" style="width:20px;height:20px;font-size:11px">●</span> 로 표시</div>
       ${accCard('🧠', '브레인', bP, bW)}
       ${accCard('📰', '전문가', eP, eW)}
       <div class="section-t">경주별 상세</div>
@@ -4595,6 +4607,7 @@ route('results', () => {
           <div class="reco-tags">pick ${badge(pickHit(e6, t3))} · win ${badge(pickHit(e6.slice(0,3), t3))}</div>
         </div>`;
       }).join('')}`;
+    rb.querySelectorAll('[data-rd]').forEach(b => b.onclick = () => { resRecoDate = b.dataset.rd; renderReco(); });
   }
 
   $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
