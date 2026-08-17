@@ -4116,7 +4116,12 @@ route('brain', () => {
         <span class="chev">${open?'▲':'▼'}</span>
       </button>
       ${open ? brainDetail(r) : ''}</div>`);
-    $('[data-k]', node).onclick = () => { brainOpen = open ? null : key; render(); };
+    $('[data-k]', node).onclick = () => {
+      const sc = $('.screen'); const y = sc ? sc.scrollTop : 0;   // 스크롤 위치 보존
+      brainOpen = open ? null : key;
+      render();
+      const sc2 = $('.screen'); if (sc2) sc2.scrollTop = y;
+    };
     const bb = $('[data-bet]', node);
     if (bb) bb.onclick = e => {
       e.stopPropagation();
