@@ -7585,7 +7585,7 @@ route('resultDone', () => {
 /* =========================================================
    결과분석 (내 실제 기록)
    ========================================================= */
-let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null;
+let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null, resBetsDate = null;
 route('results', () => {
   const body = document.createElement('div');
   body.innerHTML = `
@@ -7618,7 +7618,12 @@ route('results', () => {
         <div class="stat big"><div class="row between"><div class="k">회수율</div><div class="v" style="font-size:18px">${roi(s)}<small>%</small></div></div></div>
         <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
       </div></div>`;
-    dates.forEach(({date, recs}) => {
+    // 날짜(회차) 셀렉트 — 최신 먼저, 클릭해서 하루씩 보기
+    if (!resBetsDate || !dates.some(d => d.date === resBetsDate)) resBetsDate = dates[0].date;
+    html += `<div class="date-row" id="betsDates">${dates.map(({date, recs}) =>
+      `<button class="date-chip ${date===resBetsDate?'active':''}" data-bd="${date}">${fmtMD(date)} <span class="muted" style="font-weight:600">${recs.length}경주</span></button>`).join('')}</div>`;
+    const sel = dates.find(d => d.date === resBetsDate) || dates[0];
+    { const {date, recs} = sel;
       // 회차(날짜)별 소계
       let db = 0, dp = 0, settledN = 0;
       recs.forEach(rec => { const su = recSummary(rec); db += su.bet; if (rec.settled) { dp += su.payout; settledN++; } });
@@ -7640,8 +7645,9 @@ route('results', () => {
           </div>
           ${open ? raceDetail(rec, su) : ''}</div>`;
       });
-    });
+    }
     rb.innerHTML = html;
+    rb.querySelectorAll('[data-bd]').forEach(b => b.onclick = () => { resBetsDate = b.dataset.bd; resOpen = null; render2(); });
     rb.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { resOpen = resOpen===b.dataset.open?null:b.dataset.open; render2(); });
     rb.querySelectorAll('[data-enter]').forEach(b => b.onclick = (e) => { e.stopPropagation(); go('result', { q:'id='+b.dataset.enter }); });
     rb.querySelectorAll('[data-del]').forEach(b => b.onclick = (e) => { e.stopPropagation();
