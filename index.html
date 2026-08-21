@@ -7012,6 +7012,27 @@ const State = {
   },
   deleteByDate(date) { this.records = this.records.filter(r => r.date !== date); this._saveRecords(); },
   deleteRecord(id) { this.records = this.records.filter(r => r.id !== id); this._saveRecords(); },
+  // ---- JSON 백업/복원 ----
+  exportJSON() {
+    return JSON.stringify({ app: 'racebrain', v: 1, exportedAt: new Date().toISOString(),
+      name: this.user.name || '', records: this.records }, null, 1);
+  },
+  importJSON(text) {
+    let data;
+    try { data = JSON.parse(text); } catch (e) { return { ok: false, msg: '올바른 백업 파일이 아니에요.' }; }
+    const incoming = Array.isArray(data) ? data : (data && Array.isArray(data.records) ? data.records : null);
+    if (!incoming) return { ok: false, msg: '백업 파일에서 기록을 찾지 못했어요.' };
+    const have = new Set(this.records.map(r => r.id));
+    let added = 0;
+    incoming.forEach(r => {
+      if (!r || typeof r !== 'object' || !r.id) return;
+      if (have.has(r.id)) return;           // 기존 데이터는 절대 덮지 않음 (없는 것만 추가)
+      this.records.push(r); have.add(r.id); added++;
+    });
+    if (added) this._saveRecords();
+    if (data && data.name && !this.user.name) this.saveName(data.name);
+    return { ok: true, added, total: this.records.length };
+  },
 };
 
 /* ---------- 포맷 유틸 ---------- */
@@ -7777,6 +7798,14 @@ route('profile', () => {
       <div class="kv"><span class="k">모의</span><span class="v">${ms.sessions}회 · ${ms.races}경주 · 회수율 ${roi(ms)}%</span></div>
       <div class="kv"><span class="k">저장된 기록</span><span class="v">${State.records.length}건</span></div>
     </div>
+    <div class="section-t">데이터 백업 <span class="muted" style="font-weight:700">· 기기가 바뀌거나 브라우저를 지워도 안전하게</span></div>
+    <div class="card">
+      <div class="muted" style="font-size:12.5px;line-height:1.6;margin-bottom:12px">📥 <b>내보내기</b>로 기록을 파일로 저장해두면, 나중에 <b>불러오기</b>로 되살릴 수 있어요. (브라우저 삭제·기기 변경 대비)</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn--ghost" id="expJson">${icon('pdf')} 백업 내보내기 (${State.records.length}건)</button>
+        <button class="btn btn--ghost" id="impJson">${icon('plus')} 백업 불러오기</button>
+        <input type="file" id="impFile" accept="application/json,.json" hidden></div>
+    </div>
     <div class="section-t">회차별 초기화 <span class="muted" style="font-weight:700">· 날짜(회차) 선택 삭제</span></div>
     <div id="wipeDates"></div>
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
@@ -7799,6 +7828,31 @@ route('profile', () => {
     });
   }
   renderWipe();
+  // 백업 내보내기 / 불러오기
+  $('#expJson', body).onclick = () => {
+    if (!State.records.length) return toast('내보낼 기록이 없어요');
+    const blob = new Blob([State.exportJSON()], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `racebrain-backup-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast(`백업 파일 저장 (${State.records.length}건) 📥`);
+  };
+  const impFile = $('#impFile', body);
+  $('#impJson', body).onclick = () => impFile.click();
+  impFile.onchange = () => {
+    const f = impFile.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const res = State.importJSON(String(reader.result));
+      if (!res.ok) return toast(res.msg);
+      toast(res.added ? `${res.added}건 복원 완료! (총 ${res.total}건) 🎉` : '이미 다 있는 기록이에요');
+      render();
+    };
+    reader.onerror = () => toast('파일을 읽지 못했어요');
+    reader.readAsText(f); impFile.value = '';
+  };
   $('#saveName', body).onclick = () => { State.saveName($('#pfName', body).value || '경마러'); toast('저장했어요 🐴'); };
   $('#resetOnb', body).onclick = () => { store.del('rb.name'); State.user.name=''; go('onboarding'); };
   $('#wipe', body).onclick = () => { if (confirm('저장된 배팅 기록을 모두 지울까요?')) { State.records=[]; State._saveRecords(); toast('기록을 초기화했어요'); render(); } };
