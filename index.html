@@ -189,6 +189,10 @@ select.inp { appearance: none; background-image: none; }
   background: rgba(230,172,92,.14); color: var(--amber-2);
 }
 .badge--mock { background: rgba(139,120,103,.2); color: var(--text-2); }
+.badge--done { background: rgba(134,197,138,.18); color: var(--up); }
+.seqno { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 999px;
+  background: rgba(230,172,92,.12); border: 1px solid var(--line); color: var(--amber-2);
+  font-weight: 800; font-size: 12.5px; display: flex; align-items: center; justify-content: center; margin-right: 11px; }
 
 /* ------- 온보딩 ------- */
 .onb {
@@ -227,6 +231,14 @@ select.inp { appearance: none; background-image: none; }
 }
 .hero .glowline { position:absolute; inset:0; background: var(--grad-amber); opacity:.06; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
+/* 반원 회수율 게이지 */
+.gauge-wrap { margin: 2px 0 2px; }
+.gauge-net { text-align: center; font-size: 20px; font-weight: 900; margin: 0 0 13px; }
+.gauge-net.hi { color: var(--up); } .gauge-net.mid { color: var(--text-2); } .gauge-net.lo { color: var(--down); }
+.stat-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gstat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; text-align: center; }
+.gstat .k { font-size: 12px; color: var(--muted); font-weight: 700; }
+.gstat .v { font-size: 17px; font-weight: 900; margin-top: 3px; }
 .stat {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius-sm); padding: 15px 15px 14px;
@@ -462,6 +474,10 @@ select.inp { appearance: none; background-image: none; }
 .roi-pill { font-size: 14px; font-weight: 900; padding: 5px 11px; border-radius: 999px; }
 .roi-pill.up { background: rgba(134,197,138,.16); color: var(--up); }
 .roi-pill.down { background: rgba(224,138,114,.16); color: var(--down); }
+/* 회수율 3색: 0~50 빨강 / 50~100 앰버 / 100+ 초록 */
+.roi-pill.hi { background: rgba(134,197,138,.16); color: var(--up); }
+.roi-pill.mid { background: rgba(230,172,92,.16); color: var(--amber-2); }
+.roi-pill.lo { background: rgba(224,138,114,.16); color: var(--down); }
 .race-item { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 9px; overflow: hidden; }
 .race-item.open { border-color: rgba(230,172,92,.4); }
 .race-head { width: 100%; background: none; border: 0; cursor: pointer; color: var(--text);
@@ -543,9 +559,12 @@ html, body { overflow-x: hidden; overscroll-behavior: none; }
 .acc-card { background: var(--grad-brown); border: 1px solid var(--line); border-radius: var(--radius); padding: 15px 16px; margin-bottom: 10px; }
 .acc-h { font-size: 15px; margin-bottom: 10px; }
 .acc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.acc-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.acc-grid3 .acc-v { font-size: 18px; }
 .acc-k { font-size: 12px; color: var(--muted); font-weight: 700; }
 .acc-v { font-size: 22px; font-weight: 900; margin-top: 4px; }
 .acc-v small { font-size: 13px; font-weight: 800; }
+.acc-v.hl { color: var(--amber-2); }
 .reco-row { display: flex; align-items: center; gap: 10px; }
 .reco-src { flex: none; width: 68px; font-size: 13px; font-weight: 800; }
 .reco-chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -13773,7 +13792,8 @@ route('brain', () => {
   const byDate = {};
   DB.preRaces.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
   const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
-  if (!brainDate || !byDate[brainDate]) brainDate = dates[0];
+  // 오늘 날짜가 데이터에 있으면 기본으로, 없으면 최신
+  if (!brainDate || !byDate[brainDate]) brainDate = byDate[todayISO()] ? todayISO() : dates[0];
 
   const dateRow = el(`<div class="date-row">${dates.map(d => {
     const mock = byDate[d][0].mode === 'mock';
@@ -13783,18 +13803,21 @@ route('brain', () => {
   body.appendChild(dateRow);
 
   const list = el('<div></div>');
-  list.appendChild(el(`<div class="section-t">${brainDate} · ${byDate[brainDate].length}경주</div>`));
-  byDate[brainDate].forEach(r => list.appendChild(brainRow(r)));
+  const total = byDate[brainDate].length;
+  list.appendChild(el(`<div class="section-t">${brainDate} · 총 ${total}경주</div>`));
+  byDate[brainDate].forEach((r, i) => list.appendChild(brainRow(r, i + 1, total)));
   body.appendChild(list);
 
-  function brainRow(r) {
+  function brainRow(r, seq, total) {
     const key = r.region + r.raceNo + r.date;
     const open = brainOpen === key;
     const t1 = r.ranked[0] || {};
+    const betDone = State.records.some(rec => rec.region === r.region && rec.raceNo === r.raceNo && rec.date === r.date);
     const node = el(`<div class="race-item ${open?'open':''}">
       <button class="race-head" data-k="${key}">
-        <div><div class="race-name">${regShort(r.region)} ${r.raceNo}R <span class="rtime">${r.start}</span> <span class="badge ${r.mode==='mock'?'badge--mock':''}">${r.mode==='mock'?'모의':'실전'}</span></div>
-          <div class="muted" style="font-size:12px;margin-top:3px">${r.distance||''} · 축 ${t1.no}번 ${esc(t1.name||'')}</div></div>
+        <span class="seqno">${seq}</span>
+        <div style="flex:1"><div class="race-name">${regShort(r.region)} ${r.raceNo}R <span class="rtime">${r.start}</span> <span class="badge ${r.mode==='mock'?'badge--mock':''}">${r.mode==='mock'?'모의':'실전'}</span>${betDone?' <span class="badge badge--done">배팅완료</span>':''}</div>
+          <div class="muted" style="font-size:12px;margin-top:3px">${seq}/${total} · ${r.distance||''} · 축 ${t1.no}번 ${esc(t1.name||'')}</div></div>
         <span class="chev">${open?'▲':'▼'}</span>
       </button>
       ${open ? brainDetail(r) : ''}</div>`);
@@ -14155,7 +14178,7 @@ route('resultDone', () => {
 /* =========================================================
    결과분석 (내 실제 기록)
    ========================================================= */
-let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null, resBetsDate = null;
+let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null, resBetsScope = 'latest', resRecoRegion = 'all';
 route('results', () => {
   const body = document.createElement('div');
   body.innerHTML = `
@@ -14173,51 +14196,88 @@ route('results', () => {
     $('#modeTabs', body).style.display = resView === 'reco' ? 'none' : '';
     resView === 'reco' ? renderReco() : render2();
   });
+  const roiCls = p => p > 100 ? 'hi' : p >= 50 ? 'mid' : 'lo';   // 회수율 3색
+  function statOf(recs) {
+    let bet = 0, payout = 0, hits = 0, entries = 0, settled = 0;
+    recs.forEach(rec => {
+      const su = recSummary(rec); bet += su.bet;
+      if (rec.settled) { payout += su.payout; settled++;
+        rec.bets.forEach((b, i) => { entries++; if (evalBet({ ...b, idx: i }, rec.result).hit) hits++; }); }
+    });
+    return { races: recs.length, bet, payout, net: payout - bet, roi: bet ? Math.round(payout / bet * 100) : 0, hits, entries, settled };
+  }
+  // 반원 회수율 게이지 (가운데=100%, 좌=마이너스 / 우=플러스)
+  function gaugeSVG(roi, net) {
+    const cx = 100, cy = 96, R = 78, clamp = Math.max(0, Math.min(200, roi));
+    const ang = v => Math.PI * (1 - v / 200);              // v[0..200] → 각도(π..0)
+    const pt = a => [cx + R * Math.cos(a), cy - R * Math.sin(a)];
+    const poly = (a, b, step) => { const p = []; for (let v = a; v <= b + 0.001; v += step) { const [x, y] = pt(ang(v)); p.push(`${x.toFixed(1)},${y.toFixed(1)}`); } return p.join(' '); };
+    const col = roi > 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
+    const [nx, ny] = pt(ang(clamp));
+    return `<svg viewBox="0 0 200 118" width="100%" style="max-width:280px;display:block;margin:0 auto">
+      <polyline points="${poly(0,200,4)}" fill="none" stroke="var(--line)" stroke-width="13" stroke-linecap="round"/>
+      <polyline points="${poly(Math.min(100,clamp),Math.max(100,clamp),2)}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"/>
+      <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${col}" stroke-width="2.5"/>
+      <circle cx="${cx}" cy="${cy}" r="4.5" fill="${col}"/>
+      <text x="100" y="86" text-anchor="middle" font-size="34" font-weight="800" fill="var(--text)">${roi}<tspan font-size="16">%</tspan></text>
+      <text x="14" y="112" font-size="12" fill="var(--muted)" font-weight="700">–</text>
+      <text x="100" y="18" text-anchor="middle" font-size="10" fill="var(--muted)">100%</text>
+      <text x="186" y="112" text-anchor="end" font-size="12" fill="var(--muted)" font-weight="700">+</text>
+    </svg>`;
+  }
   function render2() {
-    const s = recStats(resMode), oh = overallHit(s.byType), dates = recDates(resMode);
-    let html = '';
-    if (!State.records.filter(r=>r.mode===resMode).length) {
-      html = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.6">아직 ${resMode==='real'?'실전':'모의'} 기록이 없어요.<br>레이스에서 배팅하면 여기 쌓여요! 🐎</div>`;
-      rb.innerHTML = html; return;
+    const mine = State.records.filter(r => r.mode === resMode);
+    if (!mine.length) {
+      rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.6">아직 ${resMode==='real'?'실전':'모의'} 기록이 없어요.<br>레이스에서 배팅하면 여기 쌓여요! 🐎</div>`;
+      return;
     }
-    html += `<div class="hero" style="margin-bottom:6px"><div class="glowline"></div>
-      <div class="cnt" style="margin-bottom:10px"><b>${s.sessions}</b><span class="u">회</span><span class="dot">·</span><b>${s.races}</b><span class="u">경주</span></div>
-      <div class="stat-grid">
-        <div class="stat"><div class="k">배팅금액</div><div class="v">${won(s.bet)}</div></div>
-        <div class="stat"><div class="k">배당금액</div><div class="v">${won(s.payout)}</div><div class="delta ${net(s)>=0?'up':'down'}">${net(s)>=0?'▲':'▼'} ${won(Math.abs(net(s)))}</div></div>
-        <div class="stat big"><div class="row between"><div class="k">회수율</div><div class="v" style="font-size:18px">${roi(s)}<small>%</small></div></div></div>
-        <div class="stat big"><div class="row between"><div class="k">적중률</div><div class="v" style="font-size:18px">${oh.rate}<small>% (${oh.hits}/${oh.entries})</small></div></div></div>
-      </div></div>`;
-    // 날짜(회차) 셀렉트 — 최신 먼저, 클릭해서 하루씩 보기
-    if (!resBetsDate || !dates.some(d => d.date === resBetsDate)) resBetsDate = dates[0].date;
-    html += `<div class="date-row" id="betsDates">${dates.map(({date, recs}) =>
-      `<button class="date-chip ${date===resBetsDate?'active':''}" data-bd="${date}">${fmtMD(date)} <span class="muted" style="font-weight:600">${recs.length}경주</span></button>`).join('')}</div>`;
-    const sel = dates.find(d => d.date === resBetsDate) || dates[0];
-    { const {date, recs} = sel;
-      // 회차(날짜)별 소계
+    const allDates = recDates(resMode);                    // [{date,recs}] 최신순
+    if (resBetsScope !== 'latest' && resBetsScope !== 'all') resBetsScope = 'latest';
+    const scope = resBetsScope;
+    const shownDates = scope === 'latest' ? [allDates[0]] : allDates;
+    const st = statOf(scope === 'latest' ? allDates[0].recs : mine);
+    const netCls = st.net > 0 ? 'hi' : st.net < 0 ? 'lo' : 'mid';
+    let html = `
+      <div class="seg seg--pill" id="scopeSeg" style="max-width:220px;margin:0 auto 14px">
+        <button data-sc="latest" class="${scope==='latest'?'active':''}">최신 회차</button>
+        <button data-sc="all" class="${scope==='all'?'active':''}">누적</button></div>
+      <div class="hero" style="margin-bottom:8px">
+        <div class="muted" style="font-size:12px;text-align:center;margin-bottom:2px">${scope==='latest'?`${shownDates[0].date} · ${st.races}경주`:`전체 ${allDates.length}일 · ${st.races}경주`} · 회수율</div>
+        <div class="gauge-wrap">${gaugeSVG(st.roi, st.net)}</div>
+        <div class="gauge-net ${netCls}">회수금액 ${st.net>=0?'+':'-'}${won(Math.abs(st.net))}</div>
+        <div class="stat-grid2">
+          <div class="gstat"><div class="k">배팅금액</div><div class="v">${won(st.bet)}</div></div>
+          <div class="gstat"><div class="k">배당금액</div><div class="v">${won(st.payout)}</div></div>
+        </div>
+        ${st.entries?`<div class="muted" style="font-size:12px;text-align:center;margin-top:10px">적중 ${st.hits}/${st.entries}건</div>`:''}
+      </div>`;
+    shownDates.forEach(({ date, recs }) => {
       let db = 0, dp = 0, settledN = 0;
       recs.forEach(rec => { const su = recSummary(rec); db += su.bet; if (rec.settled) { dp += su.payout; settledN++; } });
       const droi = db ? Math.round(dp / db * 100) : 0, dnet = dp - db;
       html += `<div class="section-t">${date} · ${recs.length}경주</div>
         <div class="daysum"><div><span class="muted">배팅 ${won(db)} → 배당 ${won(dp)}</span></div>
-          ${settledN ? `<div class="row gap8"><span class="roi-pill ${droi>=100?'up':'down'}" style="font-size:12px;padding:3px 9px">${droi}%</span><span class="${dnet>=0?'up':'down'}" style="font-weight:800;font-size:13px">${dnet>=0?'+':'-'}${won(Math.abs(dnet))}</span></div>` : `<span class="muted" style="font-size:12px">결과 대기</span>`}</div>`;
-      recs.forEach(rec => {
+          ${settledN ? `<div class="row gap8"><span class="roi-pill ${roiCls(droi)}" style="font-size:12px;padding:3px 9px">${droi}%</span><span class="${dnet>=0?'up':'down'}" style="font-weight:800;font-size:13px">${dnet>=0?'+':'-'}${won(Math.abs(dnet))}</span></div>` : `<span class="muted" style="font-size:12px">결과 대기</span>`}</div>`;
+      const startOf = rec => { const pr = DB.preRaces.find(p => p.region===rec.region && p.raceNo===rec.raceNo && p.date===rec.date); return pr && pr.start ? pr.start.padStart(5,'0') : '99:99'; };
+      const sorted = recs.slice().sort((a, b) => startOf(a) < startOf(b) ? -1 : 1);
+      sorted.forEach((rec, ri) => {
         const su = recSummary(rec), open = resOpen === rec.id;
-        const pill = rec.settled ? `<span class="roi-pill ${su.roi>=100?'up':'down'}">${su.roi}%</span>`
+        const pill = rec.settled ? `<span class="roi-pill ${roiCls(su.roi)}">${su.roi}%</span>`
           : `<span class="roi-pill pend" data-enter="${rec.id}">결과입력</span>`;
         html += `<div class="race-item ${open?'open':''}">
           <div class="race-headrow">
             <button class="race-head" data-open="${rec.id}" style="flex:1">
-              <div><div class="race-name">${esc(rec.label)} <span class="badge ${rec.mode==='mock'?'badge--mock':''}">${rec.mode==='real'?'실전':'모의'}</span></div>
+              <span class="seqno">${ri+1}</span>
+              <div style="flex:1"><div class="race-name">${esc(rec.label)} <span class="badge ${rec.mode==='mock'?'badge--mock':''}">${rec.mode==='real'?'실전':'모의'}</span></div>
                 <div class="muted" style="font-size:12px;margin-top:3px">배팅 ${won(su.bet)} · ${rec.bets.length}건${rec.settled?'':' · 결과 대기'}</div></div>
               ${pill}</button>
             <button class="del-race" data-del="${rec.id}" aria-label="경기 삭제">${icon('trash')}</button>
           </div>
           ${open ? raceDetail(rec, su) : ''}</div>`;
       });
-    }
+    });
     rb.innerHTML = html;
-    rb.querySelectorAll('[data-bd]').forEach(b => b.onclick = () => { resBetsDate = b.dataset.bd; resOpen = null; render2(); });
+    rb.querySelectorAll('[data-sc]').forEach(b => b.onclick = () => { resBetsScope = b.dataset.sc; resOpen = null; render2(); });
     rb.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { resOpen = resOpen===b.dataset.open?null:b.dataset.open; render2(); });
     rb.querySelectorAll('[data-enter]').forEach(b => b.onclick = (e) => { e.stopPropagation(); go('result', { q:'id='+b.dataset.enter }); });
     rb.querySelectorAll('[data-del]').forEach(b => b.onclick = (e) => { e.stopPropagation();
@@ -14266,51 +14326,58 @@ route('results', () => {
     all.forEach(o => { (byDate[o.rec.date] = byDate[o.rec.date] || []).push(o); });
     const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
     if (!resRecoDate || !byDate[resRecoDate]) resRecoDate = dates[0];
-    const races = byDate[resRecoDate];
+    const dayRaces = byDate[resRecoDate];
+    // 지역 필터 (해당 회차에 서울/제주/부산 선택)
+    const regions = [...new Set(dayRaces.map(o => o.rec.region))];
+    if (resRecoRegion !== 'all' && !regions.includes(resRecoRegion)) resRecoRegion = 'all';
+    const races = resRecoRegion === 'all' ? dayRaces : dayRaces.filter(o => o.rec.region === resRecoRegion);
 
     const top3of = rec => [rec.result.first, rec.result.second, rec.result.third].filter(x => x != null);
-    const pickHit = (recs, top3) => recs.some(n => top3.includes(n));
-    // 점수제: 라운드마다 실제 1·2·3착 중 몇 개를 추천에 담았나 → 3개100·2개60·1개30·0개0점, 날짜 평균
+    // 점수제: 실제 1·2·3착 중 몇 개를 추천에 담았나 → 3개100·2개60·1개30·0개0점, 평균
     const scoreOf = k => k >= 3 ? 100 : k >= 2 ? 60 : k >= 1 ? 30 : 0;
     const cntIn = (recs, t3) => recs.reduce((c, n) => c + (t3.includes(n) ? 1 : 0), 0);
-    let bPs = 0, bWs = 0, ePs = 0, eWs = 0;
+    let bW = 0, bB = 0, bP = 0, eW = 0, eB = 0, eP = 0;  // win(상위3) 배팅(상위4) pick(상위6)
     races.forEach(({ rec, pr }) => {
-      const t3 = top3of(rec);
-      const b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6);
-      bPs += scoreOf(cntIn(b6, t3)); bWs += scoreOf(cntIn(b6.slice(0, 3), t3));
-      ePs += scoreOf(cntIn(e6, t3)); eWs += scoreOf(cntIn(e6.slice(0, 3), t3));
+      const t3 = top3of(rec), b = pr.ranked.map(h => h.no), e = (pr.expert || []);
+      bW += scoreOf(cntIn(b.slice(0,3), t3)); bB += scoreOf(cntIn(b.slice(0,4), t3)); bP += scoreOf(cntIn(b.slice(0,6), t3));
+      eW += scoreOf(cntIn(e.slice(0,3), t3)); eB += scoreOf(cntIn(e.slice(0,4), t3)); eP += scoreOf(cntIn(e.slice(0,6), t3));
     });
-    const N = races.length, avg = s => Math.round(s / N);
+    const N = races.length, avg = s => N ? Math.round(s / N) : 0;
     const dateChips = `<div class="date-row" id="recoDates">${dates.map(d => {
       const mock = byDate[d][0].rec.mode === 'mock';
       return `<button class="date-chip ${d===resRecoDate?'active':''}" data-rd="${d}">${fmtMD(d)} <span class="muted" style="font-weight:600">${mock?'모의':'실전'}</span></button>`;
     }).join('')}</div>`;
-    const accCard = (icn, title, pickS, winS) => `<div class="acc-card">
+    const regSel = regions.length > 1 ? `<select id="recoRegion" class="inp" style="max-width:170px;margin:0 0 12px">
+      <option value="all" ${resRecoRegion==='all'?'selected':''}>전체 지역</option>
+      ${regions.map(rg => `<option value="${rg}" ${resRecoRegion===rg?'selected':''}>${rg}</option>`).join('')}</select>` : '';
+    const accCard = (icn, title, wS, bS, pS) => `<div class="acc-card">
       <div class="acc-h">${icn} <b>${title}</b></div>
-      <div class="acc-grid">
-        <div><div class="acc-k">win 점수 <span class="muted">(상위3)</span></div><div class="acc-v">${avg(winS)}<small>점</small></div></div>
-        <div><div class="acc-k">pick 점수 <span class="muted">(상위6)</span></div><div class="acc-v">${avg(pickS)}<small>점</small></div></div>
+      <div class="acc-grid3">
+        <div><div class="acc-k">win <span class="muted">(상위3)</span></div><div class="acc-v">${avg(wS)}<small>점</small></div></div>
+        <div><div class="acc-k">배팅점수 <span class="muted">(상위4)</span></div><div class="acc-v hl">${avg(bS)}<small>점</small></div></div>
+        <div><div class="acc-k">pick <span class="muted">(상위6)</span></div><div class="acc-v">${avg(pS)}<small>점</small></div></div>
       </div></div>`;
     const chips = (recs, t3, n) => recs.slice(0, n).map(no => `<span class="rchip ${t3.includes(no) ? 'hit' : ''}">${no}</span>`).join('');
-    const badge = ok => `<span class="rbadge ${ok ? 'ok' : 'no'}">${ok ? '적중' : '미적중'}</span>`;
     const scoreTag = (recs, t3) => { const k = cntIn(recs, t3); return `<b>${scoreOf(k)}점</b> <span class="muted">(${k}/3)</span>`; };
     rb.innerHTML = `
       ${dateChips}
-      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate} · 결과 입력한 <b>${N}경주</b> 평균 · 라운드마다 실제 1·2·3착 중 <b>3개=100 · 2개=60 · 1개=30 · 0개=0점</b> → <b style="color:var(--amber)">win 점수</b>가 100에 가까울수록 정확!</div>
-      ${accCard('🧠', '브레인', bPs, bWs)}
-      ${accCard('📰', '전문가', ePs, eWs)}
+      ${regSel}
+      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate}${resRecoRegion==='all'?'':' · '+resRecoRegion} · <b>${N}경주</b> 평균 · 실제 1·2·3착 중 담은 수 → 3개100·2개60·1개30점. <b style="color:var(--amber)">win·배팅점수</b>가 핵심!</div>
+      ${accCard('🧠', '브레인', bW, bB, bP)}
+      ${accCard('📰', '전문가', eW, eB, eP)}
       <div class="section-t">경주별 상세</div>
       ${races.map(({ rec, pr }) => {
         const t3 = top3of(rec), b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6);
         return `<div class="card" style="margin-bottom:10px">
           <div class="row between" style="margin-bottom:8px"><b>${esc(rec.label)}</b><span class="muted" style="font-size:12px">착순 ${t3.join('·')}</span></div>
           <div class="reco-row"><span class="reco-src">🧠 브레인</span><div class="reco-chips">${chips(b6, t3, 6)}</div></div>
-          <div class="reco-tags">win ${scoreTag(b6.slice(0,3), t3)} · pick ${scoreTag(b6, t3)}</div>
+          <div class="reco-tags">win ${scoreTag(b6.slice(0,3), t3)} · 배팅 ${scoreTag(b6.slice(0,4), t3)} · pick ${scoreTag(b6, t3)}</div>
           <div class="reco-row" style="margin-top:8px"><span class="reco-src">📰 전문가</span><div class="reco-chips">${chips(e6, t3, 6)}</div></div>
-          <div class="reco-tags">win ${scoreTag(e6.slice(0,3), t3)} · pick ${scoreTag(e6, t3)}</div>
+          <div class="reco-tags">win ${scoreTag(e6.slice(0,3), t3)} · 배팅 ${scoreTag(e6.slice(0,4), t3)} · pick ${scoreTag(e6, t3)}</div>
         </div>`;
       }).join('')}`;
-    rb.querySelectorAll('[data-rd]').forEach(b => b.onclick = () => { resRecoDate = b.dataset.rd; renderReco(); });
+    rb.querySelectorAll('[data-rd]').forEach(b => b.onclick = () => { resRecoDate = b.dataset.rd; resRecoRegion = 'all'; renderReco(); });
+    const rsel = $('#recoRegion', rb); if (rsel) rsel.onchange = () => { resRecoRegion = rsel.value; renderReco(); };
   }
 
   $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
