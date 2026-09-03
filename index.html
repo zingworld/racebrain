@@ -18545,8 +18545,15 @@ route('brain', () => {
   const byDate = {};
   DB.preRaces.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
   const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
-  // 오늘 날짜가 데이터에 있으면 기본으로, 없으면 최신
-  if (!brainDate || !byDate[brainDate]) brainDate = byDate[todayISO()] ? todayISO() : dates[0];
+  // 오늘 날짜가 있으면 기본, 없으면 오늘과 가장 가까운 날짜(동률이면 미래 우선)
+  if (!brainDate || !byDate[brainDate]) {
+    const today = Date.parse(todayISO());
+    brainDate = byDate[todayISO()] ? todayISO()
+      : dates.slice().sort((a, b) => {
+          const da = Math.abs(Date.parse(a) - today), db = Math.abs(Date.parse(b) - today);
+          return da !== db ? da - db : (a < b ? 1 : -1);   // 동률이면 더 늦은(미래) 날짜
+        })[0];
+  }
 
   const dateRow = el(`<div class="date-row">${dates.map(d => {
     const mock = byDate[d][0].mode === 'mock';
