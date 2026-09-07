@@ -490,6 +490,13 @@ select.inp { appearance: none; background-image: none; }
   border-bottom: 1px solid var(--line); font-size: 12.5px; font-weight: 700; align-items: center; }
 .btr span:nth-child(n+3) { text-align: right; }
 .btr .marno { white-space: nowrap; }
+/* 값어치 체크 테이블 */
+.valrow { display: grid; grid-template-columns: 0.6fr 0.8fr 0.7fr 0.7fr 1.1fr 1fr; gap: 6px;
+  align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; font-weight: 700; }
+.valrow span { text-align: center; }
+.valhead { color: var(--muted); font-size: 11px; font-weight: 800; }
+.valrow .valodds { width: 100%; }
+.valres.up { color: var(--up); } .valres.down { color: var(--down); }
 .btr span:nth-child(4) { white-space: nowrap; }   /* 결과: '적중 100.5배' 줄바꿈 방지 */
 .btr.bthead { color: var(--muted); font-size: 11px; font-weight: 800; }
 .btr.hit { color: var(--text); }
@@ -18533,6 +18540,18 @@ route('home', () => {
    브레인 — 사전 분석된 경주 (날짜 → 라운드 → 분석)
    ========================================================= */
 let brainOpen = null, brainDate = null;
+// 종합픽: 브레인 순위 + 전문가 순위 융합(w=1.0). 낮은 합산위치 = 상위
+function combinedPicks(pr, n = 6) {
+  const b = pr.ranked.map(h => h.no), e = pr.expert || [];
+  const cand = [...new Set([...b, ...e])];
+  const pb = {}, pe = {}; b.forEach((x, i) => pb[x] = i); e.forEach((x, i) => pe[x] = i);
+  const big = Math.max(b.length, e.length) + 6;
+  return cand.sort((x, y) => ((pb[x] ?? big) + (pe[x] ?? big)) - ((pb[y] ?? big) + (pe[y] ?? big))).slice(0, n);
+}
+// 종합픽 순위별 실측 입상확률(연승, 164경주) — 값어치 배팅 기준
+const PLACE_PROB = [0.61, 0.49, 0.46, 0.32, 0.37, 0.18];
+const nameOfPr = (pr, no) => (pr.ranked.find(h => h.no === no) || {}).name || '';
+
 route('brain', () => {
   const body = document.createElement('div');
   body.appendChild(el(`<div class="pony-line" style="margin-bottom:14px">${pony({ size: 52 })}
@@ -18606,6 +18625,11 @@ route('brain', () => {
       <div class="reco-chips" style="padding:0 2px">
         ${e6.map((no, i) => `<span class="rchip ${i === e6.length-1 ? 'longshot' : ''}">${no}</span>`).join('')}</div>
       <div class="muted" style="font-size:11px;margin:8px 2px 0"><span class="rchip longshot" style="width:16px;height:16px;font-size:10px;vertical-align:-3px">●</span> 표시 = 인기 낮은 고배당 복병</div>` : '';
+    const cmb = combinedPicks(r, 6);
+    const combHtml = `
+      <div class="section-t" style="margin:16px 2px 8px">🎯 종합픽 <span class="muted" style="font-weight:700">· 브레인+전문가 결합</span></div>
+      <div class="reco-chips" style="padding:0 2px">${cmb.map((no, i) => `<span class="rchip ${i===0?'hit':''}">${no}</span>`).join('')}</div>
+      <div class="muted" style="font-size:11px;margin:8px 2px 0">브레인·전문가가 함께 미는 말이 상위로 · 첫 번째 = 종합 축</div>`;
     return `<div class="race-detail">
       ${r.ranked.slice(0, 6).map(h => `
         <div class="brank ${h.rank<=3?'top':''}">
@@ -18616,6 +18640,7 @@ route('brain', () => {
       <div class="card card--glow" style="margin-top:10px">
         ${(r.comments||[]).map(c=>`<div style="display:flex;gap:8px;padding:5px 0;font-size:13.5px;line-height:1.55"><span style="color:var(--amber)">▹</span><span>${esc(c)}</span></div>`).join('')}</div>
       ${expertHtml}
+      ${combHtml}
       <div class="muted" style="font-size:11px;margin:12px 0 4px;text-align:center">경마지 데이터 기반 추론 · 참고용이에요</div>
       <button class="btn btn--ghost" data-combo style="margin-top:10px">${icon('spark')} 추천 조합 보기</button>
       <button class="btn" data-bet style="margin-top:10px">${icon('coin')} 이 경주 배팅하러 가기</button>
@@ -18703,13 +18728,25 @@ route('betting', () => {
   let bi = 0;
   // 이 경주의 브레인/전문가 추천 (있으면 상단에 표시)
   const pr = DB.preRaces.find(r => r.region === d.region && r.raceNo === d.raceNo && r.date === d.date);
+  const cmb = pr ? combinedPicks(pr, 6) : [];
   const recoCard = pr ? `
     <div class="card card--glow" style="margin-bottom:16px;padding:12px 14px">
       <div class="reco-row"><span class="reco-src">🧠 브레인</span>
         <div class="reco-chips">${pr.ranked.slice(0,6).map((h,i)=>`<span class="rchip ${i===0?'hit':''}">${h.no}</span>`).join('')}</div></div>
       <div class="reco-row" style="margin-top:8px"><span class="reco-src">📰 전문가</span>
         <div class="reco-chips">${(pr.expert||[]).slice(0,6).map((no,i,arr)=>`<span class="rchip ${i===arr.length-1?'longshot':''}">${no}</span>`).join('') || '<span class="muted" style="font-size:12px">추천 없음</span>'}</div></div>
-      <div class="muted" style="font-size:11px;margin-top:8px;line-height:1.5">🧠 첫 번째 <span class="rchip hit" style="width:15px;height:15px;font-size:9px;vertical-align:-2px">●</span> = 축(1순위) · 📰 마지막 <span class="rchip longshot" style="width:15px;height:15px;font-size:9px;vertical-align:-2px">●</span> = 고배당 복병</div>
+      <div class="reco-row" style="margin-top:8px"><span class="reco-src">🎯 종합</span>
+        <div class="reco-chips">${cmb.map((no,i)=>`<span class="rchip ${i===0?'hit':''}">${no}</span>`).join('')}</div></div>
+      <div class="muted" style="font-size:11px;margin-top:8px;line-height:1.5">🎯 종합 = 브레인+전문가 결합픽 · 🧠 첫 번째 = 축</div>
+    </div>
+    <div class="card" style="margin-bottom:16px;padding:12px 14px">
+      <div class="row between" style="margin-bottom:6px"><b style="font-size:14px">🎯 종합픽 값어치 체크</b><span class="muted" style="font-size:11px">발주 10분 전 연승배당 입력</span></div>
+      <div class="muted" style="font-size:11px;margin-bottom:10px;line-height:1.5">배당이 <b>본전배당</b>보다 크면 🟢값있음 → 걸 만해요. 작으면 🔴(인기마 함정) 스킵.</div>
+      <div class="valrow valhead"><span>순위</span><span>마번</span><span>입상%</span><span>본전</span><span>연승배당</span><span>판정</span></div>
+      ${cmb.map((no,i)=>{ const p=PLACE_PROB[i]||0.15; return `<div class="valrow">
+        <span>${i+1}위</span><span class="marno">${no}번</span><span>${Math.round(p*100)}%</span><span>${(1/p).toFixed(2)}</span>
+        <span><input class="inp valodds" type="number" step="0.1" min="0" inputmode="decimal" placeholder="-" data-p="${p}" style="padding:6px 8px;font-size:13px;text-align:center"></span>
+        <span class="valres muted">–</span></div>`;}).join('')}
     </div>` : '';
   const body = document.createElement('div');
   body.innerHTML = `
@@ -18796,6 +18833,15 @@ route('betting', () => {
       bets:d.bets.map(b=>({type:b.type,horses:b.horses.slice(),amount:b.amount})), slips:d.slips.slice(), result:null, settled:false });
     go('done');
   };
+  // 값어치 체크: 연승배당 입력 → EV(배당×입상확률) 판정
+  body.querySelectorAll('.valodds').forEach(inp => inp.oninput = () => {
+    const p = +inp.dataset.p, v = parseFloat(inp.value);
+    const res = inp.closest('.valrow').querySelector('.valres');
+    if (!v || v <= 0) { res.textContent = '–'; res.className = 'valres muted'; return; }
+    const ev = Math.round(v * p * 100);
+    res.textContent = (ev >= 100 ? '🟢' : '🔴') + ev + '%';
+    res.className = 'valres ' + (ev >= 100 ? 'up' : 'down');
+  });
   renderPager(); renderEditor(); renderSummary(); renderSlips();
   return shell({ title: '배팅하기', tab: 'setup', body, back: () => go('setup') });
 });
