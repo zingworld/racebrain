@@ -24217,7 +24217,7 @@ route('setup', () => {
 });
 
 /* =========================================================
-   배팅 (마번 1~12, 여러 배팅, 마권 사진)
+   배팅 (마번 1~16, 여러 배팅)
    ========================================================= */
 route('betting', () => {
   const d = State.draft;
@@ -24255,7 +24255,7 @@ route('betting', () => {
   body.innerHTML = `
     <div class="steps"><div class="dot on"></div><div class="dot on"></div><span class="lbl">2 / 2 · 배팅</span></div>
     <div class="pony-line" style="margin-bottom:16px">${pony({ size: 56 })}
-      <div class="speech"><b>${regShort(d.region)} ${d.raceNo}R</b> 배팅 정보를 골라주세요.<br>여러 개 걸 수 있어요! 마권 사진은 최대 10장.</div></div>
+      <div class="speech"><b>${regShort(d.region)} ${d.raceNo}R</b> 배팅 정보를 골라주세요.<br>여러 개 걸 수 있어요!</div></div>
     ${recoCard}
 
     <div class="section-t">내 배팅 <span class="muted" id="betCount" style="font-weight:700"></span></div>
@@ -24268,16 +24268,12 @@ route('betting', () => {
       <button class="btn btn--ghost btn--sm" id="addBet" style="flex:1">${icon('plus')} 배팅 추가</button>
       <button class="btn btn--ghost btn--sm" id="delBet" style="flex:1">${icon('trash')} 삭제</button></div>
 
-    <div class="section-t">마권 사진 <span class="muted" id="slipCount" style="font-weight:700"></span></div>
-    <div class="slip-grid" id="slipGrid"></div>
-    <input type="file" id="slipFile" accept="image/*" multiple hidden>
-
     <div class="section-t">전체 요약</div>
     <div class="card" id="summary"></div>
     <div style="margin-top:16px"><button class="btn" id="confirmBet">${icon('check')} 배팅 확정</button></div>`;
 
   const editor = $('#betEditor', body), pgInd = $('#pgInd', body), betCount = $('#betCount', body),
-        summary = $('#summary', body), slipGrid = $('#slipGrid', body), slipFile = $('#slipFile', body);
+        summary = $('#summary', body);
   const QUICK = [500, 1000, 1500, 2000];
 
   function renderPager() {
@@ -24315,14 +24311,6 @@ route('betting', () => {
       ${d.bets.map((b,i)=>`<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.length?b.horses.map(n=>n+'번').join(','):'—'} · ${won(b.amount||0)}</span></div>`).join('')}
       <div class="kv total-row"><span class="k">합계 (${d.bets.length}건)</span><span class="v">${won(total)}</span></div>`;
   }
-  function renderSlips() {
-    $('#slipCount', body).textContent = `· ${d.slips.length}/10`;
-    slipGrid.innerHTML = d.slips.map((nm,i)=>`<div class="slip"><div class="slip-ic">${icon('camera')}</div><span>${i+1}</span><button class="rm" data-rm="${i}">×</button></div>`).join('')
-      + (d.slips.length < 10 ? `<button class="slip add" id="addSlip">${icon('plus')}<span>추가</span></button>` : '');
-    const add = $('#addSlip', slipGrid); if (add) add.onclick = () => slipFile.click();
-    slipGrid.querySelectorAll('[data-rm]').forEach(bb => bb.onclick = () => { d.slips.splice(+bb.dataset.rm, 1); renderSlips(); });
-  }
-  slipFile.onchange = () => { [...slipFile.files].forEach(f => { if (d.slips.length < 10) d.slips.push(f.name); }); slipFile.value=''; renderSlips(); };
   $('#prevBet', body).onclick = () => { if (bi>0){ bi--; renderPager(); renderEditor(); } };
   $('#nextBet', body).onclick = () => { if (bi<d.bets.length-1){ bi++; renderPager(); renderEditor(); } };
   $('#addBet', body).onclick = () => { d.bets.push({ type:'win', horses:[], amount:null }); bi=d.bets.length-1; renderPager(); renderEditor(); renderSummary(); };
@@ -24367,7 +24355,7 @@ route('betting', () => {
     };
     manRow.querySelectorAll('input').forEach(x => x.oninput = upd);
   }
-  renderPager(); renderEditor(); renderSummary(); renderSlips();
+  renderPager(); renderEditor(); renderSummary();
   return shell({ title: '배팅하기', tab: 'mybets', body, back: () => go('brain') });
 });
 
@@ -24387,8 +24375,7 @@ route('done', () => {
       <p class="muted" style="margin:0">${rec.mode==='real'?'실전':'모의'} · ${esc(rec.label)}</p></div>
     <div class="card" style="margin-top:14px">
       ${rec.bets.map((b,i)=>`<div class="kv"><span class="k">${i+1}. ${typeName(b.type)}</span><span class="v">${b.horses.map(n=>n+'번').join(',')} · ${won(b.amount)}</span></div>`).join('')}
-      <div class="kv total-row"><span class="k">배팅 합계 (${rec.bets.length}건)</span><span class="v">${won(total)}</span></div>
-      ${rec.slips.length?`<div class="kv"><span class="k">마권 사진</span><span class="v">${rec.slips.length}장 📎</span></div>`:''}</div>
+      <div class="kv total-row"><span class="k">배팅 합계 (${rec.bets.length}건)</span><span class="v">${won(total)}</span></div></div>
     <div class="pony-line" style="margin-top:18px">${pony({ size: 56 })}
       <div class="speech">경주 끝나면 <b>결과 입력</b>하면<br>적중·획득까지 정산해드릴게요! 🍀</div></div>
     <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
@@ -24422,11 +24409,6 @@ route('result', () => {
 
     <div class="section-t">${icon('coin')} 배팅별 결과 <span class="muted" style="font-weight:700">· 적중 배팅에 배당률 입력</span></div>
     <div id="mults"></div>
-
-    <div class="section-t">결과 사진 <span class="muted" style="font-weight:700">· 선택</span></div>
-    <div class="drop" id="resDrop" style="padding:18px"><div class="ic">${icon('camera')}</div>
-      <h4 style="font-size:14px">결과 사진 업로드</h4><p>배당률표를 찍어두면 편해요</p></div>
-    <input type="file" id="resFile" accept="image/*" hidden><div id="resFileList"></div>
 
     <div style="margin-top:22px"><button class="btn" id="calc">${icon('check')} 결과 확인하기</button></div>`;
 
@@ -24463,11 +24445,6 @@ route('result', () => {
     renderBets();
   }));
   renderBets();
-  const resDrop=$('#resDrop',body), resFile=$('#resFile',body), resFileList=$('#resFileList',body);
-  resDrop.onclick=()=>resFile.click();
-  resFile.onchange=()=>{ const f=resFile.files[0]; if(!f)return; r.photo=f.name;
-    resFileList.innerHTML=`<div class="filerow"><div class="ic">${icon('camera')}</div><div><div class="nm">${esc(f.name)}</div></div><button class="x" id="rmRes">×</button></div>`;
-    $('#rmRes',resFileList).onclick=()=>{resFileList.innerHTML='';r.photo=null;}; };
   $('#calc', body).onclick = () => {
     if (r.first == null) return toast('최소 1착은 입력해주세요 🐴');
     State.updateRecord(rec.id, { result: r, settled: true });
