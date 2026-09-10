@@ -24018,6 +24018,8 @@ function combinedPicks(pr, n = 6) {
 }
 // 종합픽 순위별 실측 입상확률(연승, 164경주) — 값어치 배팅 기준
 const PLACE_PROB = [0.61, 0.49, 0.46, 0.32, 0.37, 0.18];
+// 종합픽 rank쌍 → 복연승(둘다 3착) 실측확률 (164경주). [i, j, prob]
+const PAIR_PROB = [[0,1,0.293],[0,2,0.238],[0,3,0.189],[1,2,0.189],[1,3,0.122],[2,3,0.079]];
 const nameOfPr = (pr, no) => (pr.ranked.find(h => h.no === no) || {}).name || '';
 
 route('brain', () => {
@@ -24208,13 +24210,13 @@ route('betting', () => {
       <div class="muted" style="font-size:11px;margin-top:8px;line-height:1.5">🎯 종합 = 브레인+전문가 결합픽 · 🧠 첫 번째 = 축</div>
     </div>
     <div class="card" style="margin-bottom:16px;padding:12px 14px">
-      <div class="row between" style="margin-bottom:6px"><b style="font-size:14px">🎯 종합픽 값어치 체크</b><span class="muted" style="font-size:11px">발주 10분 전 연승배당 입력</span></div>
-      <div class="muted" style="font-size:11px;margin-bottom:10px;line-height:1.5">배당이 <b>본전배당</b>보다 크면 🟢값있음 → 걸 만해요. 작으면 🔴(인기마 함정) 스킵.</div>
-      <div class="valrow valhead"><span>순위</span><span>마번</span><span>입상%</span><span>본전</span><span>연승배당</span><span>판정</span></div>
-      ${cmb.map((no,i)=>{ const p=PLACE_PROB[i]||0.15; return `<div class="valrow">
-        <span>${i+1}위</span><span class="marno">${no}번</span><span>${Math.round(p*100)}%</span><span>${(1/p).toFixed(2)}</span>
+      <div class="row between" style="margin-bottom:6px"><b style="font-size:14px">🎯 배팅매력도</b><span class="muted" style="font-size:11px">발주 10분 전 복연승 배당 입력</span></div>
+      <div class="muted" style="font-size:11px;margin-bottom:10px;line-height:1.5">종합픽 짝의 <b>복연승 배당</b>이 <b>본전배당</b>보다 크면 🟢매력↑ → 걸 만해요. 작으면 🔴 스킵.</div>
+      <div class="valrow valhead"><span>종합쌍</span><span>마번</span><span>확률</span><span>본전</span><span>복연승배당</span><span>판정</span></div>
+      ${PAIR_PROB.map(([i,j,p])=> j>=cmb.length ? '' : `<div class="valrow">
+        <span>${i+1}-${j+1}위</span><span class="marno">${cmb[i]}·${cmb[j]}</span><span>${Math.round(p*100)}%</span><span>${(1/p).toFixed(1)}</span>
         <span><input class="inp valodds" type="number" step="0.1" min="0" inputmode="decimal" placeholder="-" data-p="${p}" style="padding:6px 8px;font-size:13px;text-align:center"></span>
-        <span class="valres muted">–</span></div>`;}).join('')}
+        <span class="valres muted">–</span></div>`).join('')}
     </div>` : '';
   const body = document.createElement('div');
   body.innerHTML = `
@@ -24301,7 +24303,7 @@ route('betting', () => {
       bets:d.bets.map(b=>({type:b.type,horses:b.horses.slice(),amount:b.amount})), slips:d.slips.slice(), result:null, settled:false });
     go('done');
   };
-  // 값어치 체크: 연승배당 입력 → EV(배당×입상확률) 판정
+  // 배팅매력도: 복연승 배당 입력 → EV(배당×쌍확률) 판정
   body.querySelectorAll('.valodds').forEach(inp => inp.oninput = () => {
     const p = +inp.dataset.p, v = parseFloat(inp.value);
     const res = inp.closest('.valrow').querySelector('.valres');
