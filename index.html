@@ -232,9 +232,12 @@ select.inp { appearance: none; background-image: none; }
 .hero .glowline { position:absolute; inset:0; background: var(--grad-amber); opacity:.06; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
 /* 반원 회수율 게이지 */
-.gauge-wrap { margin: 2px 0 2px; }
-.gauge-net { text-align: center; font-size: 20px; font-weight: 900; margin: 0 0 13px; }
-.gauge-net.hi { color: var(--up); } .gauge-net.mid { color: var(--text-2); } .gauge-net.lo { color: var(--down); }
+.gauge-row { display: flex; align-items: center; gap: 18px; margin: 4px 0 14px; }
+.gauge-circle { flex: 0 0 auto; width: 132px; }
+.gauge-side { flex: 1; min-width: 0; }
+.gs-label { font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.gs-amt { font-size: 24px; font-weight: 900; line-height: 1.15; word-break: break-all; }
+.gs-amt.hi { color: var(--up); } .gs-amt.mid { color: var(--text-2); } .gs-amt.lo { color: var(--down); }
 .stat-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .gstat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; text-align: center; }
 .gstat .k { font-size: 12px; color: var(--muted); font-weight: 700; }
@@ -24511,22 +24514,25 @@ route('mybets', () => {
     });
     return { races: recs.length, bet, payout, net: payout - bet, roi: bet ? Math.round(payout / bet * 100) : 0, hits, entries, settled };
   }
-  function gaugeSVG(roi, net) {
-    const cx = 100, cy = 96, R = 78, clamp = Math.max(0, Math.min(200, roi));
-    const ang = v => Math.PI * (1 - v / 200);
-    const pt = a => [cx + R * Math.cos(a), cy - R * Math.sin(a)];
-    const poly = (a, b, step) => { const p = []; for (let v = a; v <= b + 0.001; v += step) { const [x, y] = pt(ang(v)); p.push(`${x.toFixed(1)},${y.toFixed(1)}`); } return p.join(' '); };
-    const col = roi > 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
-    const [nx, ny] = pt(ang(clamp));
-    return `<svg viewBox="0 0 200 118" width="100%" style="max-width:280px;display:block;margin:0 auto">
-      <polyline points="${poly(0,200,4)}" fill="none" stroke="var(--line)" stroke-width="13" stroke-linecap="round"/>
-      <polyline points="${poly(Math.min(100,clamp),Math.max(100,clamp),2)}" fill="none" stroke="${col}" stroke-width="13" stroke-linecap="round"/>
-      <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${col}" stroke-width="2.5"/>
-      <circle cx="${cx}" cy="${cy}" r="4.5" fill="${col}"/>
-      <text x="100" y="86" text-anchor="middle" font-size="34" font-weight="800" fill="var(--text)">${roi}<tspan font-size="16">%</tspan></text>
-      <text x="14" y="112" font-size="12" fill="var(--muted)" font-weight="700">–</text>
-      <text x="100" y="18" text-anchor="middle" font-size="10" fill="var(--muted)">100%</text>
-      <text x="186" y="112" text-anchor="end" font-size="12" fill="var(--muted)" font-weight="700">+</text>
+  // 원형 다중 링 게이지: 100%마다 링이 한 겹씩 늘며 채워짐
+  function gaugeSVG(roi) {
+    const cx = 90, cy = 90, baseR = 30, gap = 12, sw = 8, maxRings = 4;
+    const col = roi >= 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
+    const bands = Math.min(maxRings, Math.max(1, Math.ceil(roi / 100)));
+    let rings = '';
+    for (let b = 0; b < bands; b++) {
+      const r = baseR + b * gap, C = 2 * Math.PI * r;
+      const frac = Math.min(1, Math.max(0, (roi - b * 100) / 100));
+      const dash = (C * frac).toFixed(1);
+      rings += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${sw}"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"
+          stroke-dasharray="${dash} ${(C - dash).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    }
+    const digits = String(roi).length;
+    const fs = digits >= 5 ? 22 : digits >= 4 ? 26 : 30;
+    return `<svg viewBox="0 0 180 180" width="100%" style="display:block">
+      ${rings}
+      <text x="90" y="90" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="800" fill="var(--text)">${roi}<tspan font-size="${Math.round(fs*0.5)}">%</tspan></text>
     </svg>`;
   }
   function raceDetail(rec, su) {
@@ -24561,9 +24567,14 @@ route('mybets', () => {
         <button data-sc="latest" class="${scope==='latest'?'active':''}">최신 회차</button>
         <button data-sc="all" class="${scope==='all'?'active':''}">누적</button></div>
       <div class="hero" style="margin-bottom:8px">
-        <div class="muted" style="font-size:12px;text-align:center;margin-bottom:2px">${scope==='latest'?`${shownDates[0].date} · ${st.races}경주`:`전체 ${allDates.length}일 · ${st.races}경주`} · 회수율</div>
-        <div class="gauge-wrap">${gaugeSVG(st.roi, st.net)}</div>
-        <div class="gauge-net ${netCls}">회수금액 ${st.net>=0?'+':'-'}${won(Math.abs(st.net))}</div>
+        <div class="muted" style="font-size:12px;margin-bottom:8px">${scope==='latest'?`${shownDates[0].date} · ${st.races}경주`:`전체 ${allDates.length}일 · ${st.races}경주`} · 회수율</div>
+        <div class="gauge-row">
+          <div class="gauge-circle">${gaugeSVG(st.roi)}</div>
+          <div class="gauge-side">
+            <div class="gs-label">회수금액</div>
+            <div class="gs-amt ${netCls}">${st.net>=0?'+':'-'}${won(Math.abs(st.net))}</div>
+          </div>
+        </div>
         <div class="stat-grid2">
           <div class="gstat"><div class="k">배팅금액</div><div class="v">${won(st.bet)}</div></div>
           <div class="gstat"><div class="k">배당금액</div><div class="v">${won(st.payout)}</div></div>
