@@ -491,14 +491,36 @@ select.inp { appearance: none; background-image: none; }
 .btr span:nth-child(n+3) { text-align: right; }
 .btr .marno { white-space: nowrap; }
 /* 값어치 체크 테이블 */
-.valrow { display: grid; grid-template-columns: 0.6fr 0.8fr 0.7fr 0.7fr 1.1fr 1fr; gap: 6px;
+.valrow { display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 1.05fr 1fr; gap: 6px;
   align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 12.5px; font-weight: 700; }
 .valrow span { text-align: center; }
 .valhead { color: var(--muted); font-size: 11px; font-weight: 800; }
-.valrow .valodds { width: 100%; }
+.valrow .valodds, .valrow .vmodds { width: 100%; }
 .valres.up { color: var(--up); } .valres.down { color: var(--down); }
+.valbox summary { cursor: pointer; list-style: none; display: flex; align-items: center; }
+.valbox summary::-webkit-details-marker { display: none; }
+.valbox summary::after { content: '▾'; margin-left: auto; color: var(--muted); font-size: 12px; }
+.valbox:not([open]) summary::after { content: '▸'; }
+.valman { background: rgba(230,172,92,.06); border-radius: 8px; margin-top: 2px; }
+.vmpair { display: flex; gap: 3px; }
+.vmpair .vmno { width: 100%; padding: 5px 2px; font-size: 12px; text-align: center; }
 .btr span:nth-child(4) { white-space: nowrap; }   /* 결과: '적중 100.5배' 줄바꿈 방지 */
+.btr .bamt { white-space: nowrap; }               /* 배팅액·획득: 만원 단위 줄바꿈 방지 */
 .btr.bthead { color: var(--muted); font-size: 11px; font-weight: 800; }
+/* 달력 날짜 선택 (추천 적중률) */
+.cal { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 14px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+.cal-nav { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 16px; width: 32px; height: 30px; cursor: pointer; }
+.cal-nav:disabled { opacity: .3; cursor: default; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-dow { text-align: center; font-size: 11px; color: var(--muted); font-weight: 700; padding: 2px 0; }
+.cal-cell { position: relative; text-align: center; padding: 8px 0 10px; font-size: 13px; font-weight: 700; border-radius: 8px; color: var(--text-2); }
+.cal-cell.empty { visibility: hidden; }
+.cal-cell.nodata { color: var(--muted); opacity: .4; }
+.cal-cell.has { color: var(--text); cursor: pointer; background: rgba(230,172,92,.08); }
+.cal-cell.sel { background: var(--grad-amber); color: #2a1a0c; }
+.cal-dot { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 999px; background: var(--amber); }
+.cal-cell.sel .cal-dot { background: #2a1a0c; }
 .btr.hit { color: var(--text); }
 .race-sum { display: flex; justify-content: space-between; padding-top: 11px; font-size: 14px; font-weight: 800; }
 
@@ -20410,7 +20432,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 1,
   "label": "서울 1R",
   "distance": "1000m",
@@ -20506,7 +20528,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 1,
   "label": "제주 1R",
   "distance": "900m",
@@ -20584,7 +20606,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 2,
   "label": "서울 2R",
   "distance": "1200m",
@@ -20673,7 +20695,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 2,
   "label": "제주 2R",
   "distance": "1000m",
@@ -20758,7 +20780,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 3,
   "label": "서울 3R",
   "distance": "1400m",
@@ -20852,7 +20874,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 3,
   "label": "제주 3R",
   "distance": "1000m",
@@ -20935,7 +20957,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 4,
   "label": "서울 4R",
   "distance": "1300m",
@@ -21032,7 +21054,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 4,
   "label": "제주 4R",
   "distance": "1110m",
@@ -21121,7 +21143,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 5,
   "label": "서울 5R",
   "distance": "1300m",
@@ -21224,7 +21246,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 5,
   "label": "제주 5R",
   "distance": "1110m",
@@ -21307,7 +21329,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 6,
   "label": "서울 6R",
   "distance": "1700m",
@@ -21408,7 +21430,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 6,
   "label": "제주 6R",
   "distance": "1200m",
@@ -21498,7 +21520,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 7,
   "label": "서울 7R",
   "distance": "1800m",
@@ -21596,7 +21618,7 @@ const PRERACES = [
  {
   "region": "제주",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 7,
   "label": "제주 7R",
   "distance": "1200m",
@@ -21680,7 +21702,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 8,
   "label": "서울 8R",
   "distance": "1600m",
@@ -21783,7 +21805,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 9,
   "label": "서울 9R",
   "distance": "1200m",
@@ -21886,7 +21908,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-12",
-  "mode": "mock",
+  "mode": "real",
   "raceNo": 10,
   "label": "서울 10R",
   "distance": "1200m",
@@ -21990,7 +22012,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 1,
   "label": "서울 1R",
   "distance": "1000m",
@@ -22071,7 +22093,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 2,
   "label": "서울 2R",
   "distance": "1200m",
@@ -22172,7 +22194,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 3,
   "label": "서울 3R",
   "distance": "1400m",
@@ -22268,7 +22290,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 4,
   "label": "서울 4R",
   "distance": "1200m",
@@ -22370,7 +22392,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 1,
   "label": "영천 1R",
   "distance": "1800m",
@@ -22465,7 +22487,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 5,
   "label": "서울 5R",
   "distance": "1300m",
@@ -22569,7 +22591,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 2,
   "label": "영천 2R",
   "distance": "1200m",
@@ -22667,7 +22689,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 6,
   "label": "서울 6R",
   "distance": "1300m",
@@ -22767,7 +22789,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 3,
   "label": "영천 3R",
   "distance": "1200m",
@@ -22864,7 +22886,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 7,
   "label": "서울 7R",
   "distance": "1400m",
@@ -22967,7 +22989,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 4,
   "label": "영천 4R",
   "distance": "1400m",
@@ -23058,7 +23080,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 8,
   "label": "서울 8R",
   "distance": "1200m",
@@ -23160,7 +23182,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 5,
   "label": "영천 5R",
   "distance": "1400m",
@@ -23262,7 +23284,7 @@ const PRERACES = [
  {
   "region": "영천",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 6,
   "label": "영천 6R",
   "distance": "1400m",
@@ -23363,7 +23385,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 9,
   "label": "서울 9R",
   "distance": "1800m",
@@ -23464,7 +23486,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 10,
   "label": "서울 10R",
   "distance": "1600m",
@@ -23567,7 +23589,7 @@ const PRERACES = [
  {
   "region": "서울",
   "date": "2026-09-13",
-  "mode": "real",
+  "mode": "mock",
   "raceNo": 11,
   "label": "서울 11R",
   "distance": "1400m",
@@ -23889,7 +23911,7 @@ function tabbar(active) {
   const tabs = [
     ['home', '홈', 'home'],
     ['brain', '브레인', 'spark'],
-    ['setup', '레이스', 'flag'],
+    ['mybets', '배팅성적', 'coin'],
     ['results', '결과', 'chart'],
     ['profile', '내정보', 'user'],
   ];
@@ -24020,6 +24042,8 @@ function combinedPicks(pr, n = 6) {
 const PLACE_PROB = [0.61, 0.49, 0.46, 0.32, 0.37, 0.18];
 // 종합픽 rank쌍 → 복연승(둘다 3착) 실측확률 (164경주). [i, j, prob]
 const PAIR_PROB = [[0,1,0.293],[0,2,0.238],[0,3,0.189],[1,2,0.189],[1,3,0.122],[2,3,0.079]];
+// 종합 top6 모든 쌍 확률 (수기 입력 판정용). 키="작은rank-큰rank"(0-indexed)
+const PAIR_PROB6 = {"0-1":0.293,"0-2":0.238,"0-3":0.189,"0-4":0.171,"0-5":0.079,"1-2":0.189,"1-3":0.122,"1-4":0.134,"1-5":0.055,"2-3":0.079,"2-4":0.14,"2-5":0.067,"3-4":0.073,"3-5":0.043,"4-5":0.061};
 const nameOfPr = (pr, no) => (pr.ranked.find(h => h.no === no) || {}).name || '';
 
 route('brain', () => {
@@ -24209,15 +24233,21 @@ route('betting', () => {
         <div class="reco-chips">${cmb.map((no,i)=>`<span class="rchip ${i===0?'hit':''}">${no}</span>`).join('')}</div></div>
       <div class="muted" style="font-size:11px;margin-top:8px;line-height:1.5">🎯 종합 = 브레인+전문가 결합픽 · 🧠 첫 번째 = 축</div>
     </div>
-    <div class="card" style="margin-bottom:16px;padding:12px 14px">
-      <div class="row between" style="margin-bottom:6px"><b style="font-size:14px">🎯 배팅매력도</b><span class="muted" style="font-size:11px">발주 10분 전 복연승 배당 입력</span></div>
-      <div class="muted" style="font-size:11px;margin-bottom:10px;line-height:1.5">종합픽 짝의 <b>복연승 배당</b>이 <b>본전배당</b>보다 크면 🟢매력↑ → 걸 만해요. 작으면 🔴 스킵.</div>
-      <div class="valrow valhead"><span>종합쌍</span><span>마번</span><span>확률</span><span>본전</span><span>복연승배당</span><span>판정</span></div>
+    <details class="card valbox" open style="margin-bottom:16px;padding:12px 14px">
+      <summary><b style="font-size:14px">🎯 배팅매력도</b><span class="muted" style="font-size:11px;margin-left:6px">발주 10분 전 복연승 배당 입력</span></summary>
+      <div class="muted" style="font-size:11px;margin:8px 0 10px;line-height:1.5">복연승 배당이 <b>본전배당</b>보다 크면 🟢매력↑ → 걸 만해요. 작으면 🔴 스킵.</div>
+      <div class="valrow valhead"><span>마번</span><span>확률</span><span>본전</span><span>복연승배당</span><span>판정</span></div>
       ${PAIR_PROB.map(([i,j,p])=> j>=cmb.length ? '' : `<div class="valrow">
-        <span>${i+1}-${j+1}위</span><span class="marno">${cmb[i]}·${cmb[j]}</span><span>${Math.round(p*100)}%</span><span>${(1/p).toFixed(1)}</span>
+        <span class="marno">${cmb[i]}·${cmb[j]}</span><span>${Math.round(p*100)}%</span><span>${(1/p).toFixed(1)}</span>
         <span><input class="inp valodds" type="number" step="0.1" min="0" inputmode="decimal" placeholder="-" data-p="${p}" style="padding:6px 8px;font-size:13px;text-align:center"></span>
         <span class="valres muted">–</span></div>`).join('')}
-    </div>` : '';
+      <div class="valrow valman">
+        <span class="vmpair"><input class="inp vmno" type="number" min="1" inputmode="numeric" placeholder="마번"><input class="inp vmno" type="number" min="1" inputmode="numeric" placeholder="마번"></span>
+        <span class="vmprob muted">–</span><span class="vmfair muted">–</span>
+        <span><input class="inp vmodds" type="number" step="0.1" min="0" inputmode="decimal" placeholder="-" style="padding:6px 8px;font-size:13px;text-align:center"></span>
+        <span class="valres muted">–</span></div>
+      <div class="muted" style="font-size:10.5px;margin-top:6px">＋ 맨 아래 줄: 원하는 <b>마번 2개</b>와 배당을 직접 넣으면 판정돼요.</div>
+    </details>` : '';
   const body = document.createElement('div');
   body.innerHTML = `
     <div class="steps"><div class="dot on"></div><div class="dot on"></div><span class="lbl">2 / 2 · 배팅</span></div>
@@ -24312,8 +24342,30 @@ route('betting', () => {
     res.textContent = (ev >= 100 ? '🟢' : '🔴') + ev + '%';
     res.className = 'valres ' + (ev >= 100 ? 'up' : 'down');
   });
+  // 배팅매력도 수기 입력: 마번 2개 → 종합 순위로 확률 조회 → 배당과 EV 판정
+  const manRow = body.querySelector('.valman');
+  if (manRow && pr) {
+    const order = combinedPicks(pr, 99);   // 종합 전체 순위
+    const upd = () => {
+      const nos = [...manRow.querySelectorAll('.vmno')].map(x => parseInt(x.value));
+      const v = parseFloat(manRow.querySelector('.vmodds').value);
+      const pe = manRow.querySelector('.vmprob'), fa = manRow.querySelector('.vmfair'), res = manRow.querySelector('.valres');
+      const i = order.indexOf(nos[0]), j = order.indexOf(nos[1]);
+      if (!(nos[0] > 0 && nos[1] > 0) || nos[0] === nos[1] || i < 0 || j < 0) {
+        pe.textContent = fa.textContent = '–'; res.textContent = '–'; res.className = 'valres muted'; return;
+      }
+      const lo = Math.min(i, j), hi = Math.max(i, j);
+      const p = PAIR_PROB6[`${lo}-${hi}`] || 0.06;
+      pe.textContent = Math.round(p * 100) + '%'; fa.textContent = (1 / p).toFixed(1);
+      if (!v || v <= 0) { res.textContent = '–'; res.className = 'valres muted'; return; }
+      const ev = Math.round(v * p * 100);
+      res.textContent = (ev >= 100 ? '🟢' : '🔴') + ev + '%';
+      res.className = 'valres ' + (ev >= 100 ? 'up' : 'down');
+    };
+    manRow.querySelectorAll('input').forEach(x => x.oninput = upd);
+  }
   renderPager(); renderEditor(); renderSummary(); renderSlips();
-  return shell({ title: '배팅하기', tab: 'setup', body, back: () => go('setup') });
+  return shell({ title: '배팅하기', tab: 'mybets', body, back: () => go('brain') });
 });
 
 /* =========================================================
@@ -24352,7 +24404,7 @@ route('done', () => {
 route('result', () => {
   const id = getQuery().id || (State.draft && State.draft.recordId);
   const rec = State.getRecord(id);
-  if (!rec) { go('results'); return document.createElement('div'); }
+  if (!rec) { go('mybets'); return document.createElement('div'); }
   rec.result = rec.result || { first: null, second: null, third: null, mults: {}, photo: null };
   const r = rec.result;
   const places = [['first','1착'],['second','2착'],['third','3착']];
@@ -24426,7 +24478,7 @@ route('result', () => {
    ========================================================= */
 route('resultDone', () => {
   const rec = State.getRecord(getQuery().id);
-  if (!rec || !rec.settled) { go('results'); return document.createElement('div'); }
+  if (!rec || !rec.settled) { go('mybets'); return document.createElement('div'); }
   const s = recSummary(rec), rr = rec.result, win = s.net >= 0;
   const body = document.createElement('div');
   body.innerHTML = `
@@ -24443,10 +24495,10 @@ route('resultDone', () => {
       <div class="br-mid"><span class="muted">${b.horses.map(n=>n+'번').join(', ')}</span><span class="muted">배팅 ${won(b.amount)}</span></div>
       <div class="br-bot"><span>${e.hit?`배당률 <b>${e.mult||'-'}배</b>`:'—'}</span><span class="${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+won(e.get):won(0)}</span></div></div>`; }).join('')}</div>
     <div style="margin-top:22px;display:flex;flex-direction:column;gap:10px">
-      <button class="btn" id="toResults">${icon('chart')} 결과분석에서 보기</button>
+      <button class="btn" id="toResults">${icon('coin')} 배팅 성적 보기</button>
       <button class="btn btn--ghost" id="again">${icon('flag')} 다른 경주 배팅</button>
       <button class="btn btn--ghost" id="home">홈으로</button></div>`;
-  $('#toResults', body).onclick = () => { State.resetDraft(); go('results'); };
+  $('#toResults', body).onclick = () => { State.resetDraft(); go('mybets'); };
   $('#again', body).onclick = () => { State.resetDraft(); go('setup'); };
   $('#home', body).onclick = () => { State.resetDraft(); go('home'); };
   return shell({ title: '결과', tab: 'setup', body, back: () => go('home') });
@@ -24455,25 +24507,21 @@ route('resultDone', () => {
 /* =========================================================
    결과분석 (내 실제 기록)
    ========================================================= */
-let resMode = 'real', resOpen = null, resView = 'bets', resRecoDate = null, resBetsScope = 'latest', resRecoRegion = 'all';
-route('results', () => {
+let resMode = 'real', resOpen = null, resRecoDate = null, resBetsScope = 'latest', resRecoRegion = 'all', resRecoMonth = null;
+
+/* =========================================================
+   배팅 성적 (내 실제 기록)
+   ========================================================= */
+route('mybets', () => {
   const body = document.createElement('div');
   body.innerHTML = `
-    <div class="seg seg--pill" id="viewSeg" style="margin-bottom:14px">
-      <button data-v="bets" class="${resView==='bets'?'active':''}">🎫 내 배팅 성적</button>
-      <button data-v="reco" class="${resView==='reco'?'active':''}">🎯 추천 적중률</button></div>
-    <div class="tabs" id="modeTabs" style="${resView==='reco'?'display:none':''}">
+    <div class="tabs" id="modeTabs" style="margin-bottom:14px">
       <button class="tab ${resMode==='real'?'active':''}" data-m="real">실전</button>
       <button class="tab ${resMode==='mock'?'active':''}" data-m="mock">모의</button></div>
     <div id="resBody"></div>`;
   const rb = $('#resBody', body);
-  $('#viewSeg', body).addEventListener('click', e => { const v = e.target.closest('[data-v]'); if (!v) return;
-    resView = v.dataset.v;
-    body.querySelectorAll('#viewSeg button').forEach(x => x.classList.toggle('active', x === v));
-    $('#modeTabs', body).style.display = resView === 'reco' ? 'none' : '';
-    resView === 'reco' ? renderReco() : render2();
-  });
-  const roiCls = p => p > 100 ? 'hi' : p >= 50 ? 'mid' : 'lo';   // 회수율 3색
+  const roiCls = p => p > 100 ? 'hi' : p >= 50 ? 'mid' : 'lo';
+  const wonC = n => Math.round(n || 0).toLocaleString('ko-KR');
   function statOf(recs) {
     let bet = 0, payout = 0, hits = 0, entries = 0, settled = 0;
     recs.forEach(rec => {
@@ -24483,10 +24531,9 @@ route('results', () => {
     });
     return { races: recs.length, bet, payout, net: payout - bet, roi: bet ? Math.round(payout / bet * 100) : 0, hits, entries, settled };
   }
-  // 반원 회수율 게이지 (가운데=100%, 좌=마이너스 / 우=플러스)
   function gaugeSVG(roi, net) {
     const cx = 100, cy = 96, R = 78, clamp = Math.max(0, Math.min(200, roi));
-    const ang = v => Math.PI * (1 - v / 200);              // v[0..200] → 각도(π..0)
+    const ang = v => Math.PI * (1 - v / 200);
     const pt = a => [cx + R * Math.cos(a), cy - R * Math.sin(a)];
     const poly = (a, b, step) => { const p = []; for (let v = a; v <= b + 0.001; v += step) { const [x, y] = pt(ang(v)); p.push(`${x.toFixed(1)},${y.toFixed(1)}`); } return p.join(' '); };
     const col = roi > 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
@@ -24502,13 +24549,28 @@ route('results', () => {
       <text x="186" y="112" text-anchor="end" font-size="12" fill="var(--muted)" font-weight="700">+</text>
     </svg>`;
   }
+  function raceDetail(rec, su) {
+    const rr = rec.result;
+    return `<div class="race-detail">
+      ${rec.settled?`<div class="muted" style="font-size:12px;margin-bottom:8px">착순 ${rr.first??'-'}·${rr.second??'-'}·${rr.third??'-'}</div>`:''}
+      <div class="btable">
+        <div class="btr bthead"><span>배팅방식</span><span>마번</span><span>배팅액</span><span>결과</span><span>획득</span></div>
+        ${rec.bets.map((b,i)=>{ const e=rec.settled?evalBet({...b,idx:i},rr):{hit:false,get:0,mult:0};
+          return `<div class="btr ${e.hit?'hit':''}"><span>${typeName(b.type)}</span><span class="marno">${b.horses.join('·')}</span><span class="bamt">${wonC(b.amount)}</span>
+            <span class="${e.hit?'up':'muted'}">${!rec.settled?'대기':(e.hit?`적중 ${e.mult||'-'}배`:'미적중')}</span>
+            <span class="bamt ${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+wonC(e.get):(rec.settled?'-':'')}</span></div>`; }).join('')}
+      </div>
+      ${rec.settled?`<div class="race-sum"><span>회수율 ${su.roi}%</span><span class="${su.net>=0?'up':'down'}">순손익 ${su.net>=0?'+':'-'}${won(Math.abs(su.net))}</span></div>`
+        :`<button class="btn btn--sm" style="width:100%;margin-top:10px" data-enter2="${rec.id}">${icon('medal')} 결과 입력하기</button>`}
+    </div>`;
+  }
   function render2() {
     const mine = State.records.filter(r => r.mode === resMode);
     if (!mine.length) {
-      rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.6">아직 ${resMode==='real'?'실전':'모의'} 기록이 없어요.<br>레이스에서 배팅하면 여기 쌓여요! 🐎</div>`;
+      rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.6">아직 ${resMode==='real'?'실전':'모의'} 기록이 없어요.<br>브레인에서 경주를 골라 배팅하면 여기 쌓여요! 🐎</div>`;
       return;
     }
-    const allDates = recDates(resMode);                    // [{date,recs}] 최신순
+    const allDates = recDates(resMode);
     if (resBetsScope !== 'latest' && resBetsScope !== 'all') resBetsScope = 'latest';
     const scope = resBetsScope;
     const shownDates = scope === 'latest' ? [allDates[0]] : allDates;
@@ -24563,22 +24625,20 @@ route('results', () => {
         State.deleteRecord(b.dataset.del); resOpen = null; toast('삭제했어요'); render2();
       }});
   }
-  function raceDetail(rec, su) {
-    const rr = rec.result;
-    return `<div class="race-detail">
-      ${rec.settled?`<div class="muted" style="font-size:12px;margin-bottom:8px">착순 ${rr.first??'-'}·${rr.second??'-'}·${rr.third??'-'}</div>`:''}
-      <div class="btable">
-        <div class="btr bthead"><span>배팅방식</span><span>마번</span><span>배팅액</span><span>결과</span><span>획득</span></div>
-        ${rec.bets.map((b,i)=>{ const e=rec.settled?evalBet({...b,idx:i},rr):{hit:false,get:0,mult:0};
-          return `<div class="btr ${e.hit?'hit':''}"><span>${typeName(b.type)}</span><span class="marno">${b.horses.join('·')}</span><span>${won(b.amount)}</span>
-            <span class="${e.hit?'up':'muted'}">${!rec.settled?'대기':(e.hit?`적중 ${e.mult||'-'}배`:'미적중')}</span>
-            <span class="${e.hit?'up':'muted'}" style="font-weight:800">${e.hit?'+'+won(e.get):(rec.settled?'-':'')}</span></div>`; }).join('')}
-      </div>
-      ${rec.settled?`<div class="race-sum"><span>회수율 ${su.roi}%</span><span class="${su.net>=0?'up':'down'}">순손익 ${su.net>=0?'+':'-'}${won(Math.abs(su.net))}</span></div>`
-        :`<button class="btn btn--sm" style="width:100%;margin-top:10px" data-enter2="${rec.id}">${icon('medal')} 결과 입력하기</button>`}
-    </div>`;
-  }
-  // ===== 추천 적중률 뷰 =====
+  $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
+    body.querySelectorAll('#modeTabs .tab').forEach(x=>x.classList.toggle('active',x===m)); render2(); });
+  rb.addEventListener('click', e => { const b=e.target.closest('[data-enter2]'); if(b) go('result',{q:'id='+b.dataset.enter2}); });
+  render2();
+  return shell({ title: '배팅 성적', tab: 'mybets', body });
+});
+
+/* =========================================================
+   추천 적중률 (브레인 vs 전문가 vs 종합)
+   ========================================================= */
+route('results', () => {
+  const body = document.createElement('div');
+  body.innerHTML = `<div id="resBody"></div>`;
+  const rb = $('#resBody', body);
   function recoRaces() {
     const seen = {}, out = [];
     State.records.filter(r => r.settled && r.result && r.result.first != null).forEach(rec => {
@@ -24590,40 +24650,53 @@ route('results', () => {
     });
     return out;
   }
+  function calendar(dset, selected) {
+    const months = [...new Set([...dset].map(d => d.slice(0,7)))].sort();
+    if (!resRecoMonth || !months.includes(resRecoMonth)) resRecoMonth = selected.slice(0,7);
+    const [Y, M] = resRecoMonth.split('-').map(Number);
+    const startDow = new Date(Y, M-1, 1).getDay();
+    const dim = new Date(Y, M, 0).getDate();
+    const idx = months.indexOf(resRecoMonth);
+    const prevM = idx > 0 ? months[idx-1] : '', nextM = idx < months.length-1 ? months[idx+1] : '';
+    let cells = '';
+    for (let i=0;i<startDow;i++) cells += `<div class="cal-cell empty"></div>`;
+    for (let d=1; d<=dim; d++) {
+      const ds = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const has = dset.has(ds), sel = ds===selected;
+      cells += `<div class="cal-cell ${has?'has':'nodata'} ${sel?'sel':''}" ${has?`data-cal="${ds}"`:''}>${d}${has?'<span class="cal-dot"></span>':''}</div>`;
+    }
+    return `<div class="cal">
+      <div class="cal-head"><button class="cal-nav" data-cm="${prevM}" ${prevM?'':'disabled'}>‹</button>
+        <b>${Y}년 ${M}월</b><button class="cal-nav" data-cm="${nextM}" ${nextM?'':'disabled'}>›</button></div>
+      <div class="cal-grid">${['일','월','화','수','목','금','토'].map(w=>`<div class="cal-dow">${w}</div>`).join('')}${cells}</div></div>`;
+  }
   function renderReco() {
     const all = recoRaces();
     if (!all.length) {
       rb.innerHTML = `<div class="card" style="text-align:center;padding:30px 18px;color:var(--muted);line-height:1.7">
-        아직 데이터가 없어요.<br><b style="color:var(--text-2)">브레인 분석이 있는 경주</b>에 배팅하고<br>결과(착순)를 입력하면 여기 쌓여요! 📈<br>
-        <span style="font-size:12px">브레인 vs 전문가, 누가 더 잘 맞히는지 비교해봐요.</span></div>`;
+        아직 데이터가 없어요.<br><b style="color:var(--text-2)">브레인 분석이 있는 경주</b>에 배팅하고<br>결과(착순)를 입력하면 여기 쌓여요! 📈</div>`;
       return;
     }
-    // 날짜별 그룹 (데이터 있는 날만, 최신 먼저)
     const byDate = {};
     all.forEach(o => { (byDate[o.rec.date] = byDate[o.rec.date] || []).push(o); });
-    const dates = Object.keys(byDate).sort((a, b) => a < b ? 1 : -1);
-    if (!resRecoDate || !byDate[resRecoDate]) resRecoDate = dates[0];
+    const dset = new Set(Object.keys(byDate));
+    const dates = [...dset].sort((a, b) => a < b ? 1 : -1);
+    if (!resRecoDate || !dset.has(resRecoDate)) resRecoDate = dates[0];
     const dayRaces = byDate[resRecoDate];
-    // 지역 필터 (해당 회차에 서울/제주/부산 선택)
     const regions = [...new Set(dayRaces.map(o => o.rec.region))];
     if (resRecoRegion !== 'all' && !regions.includes(resRecoRegion)) resRecoRegion = 'all';
     const races = resRecoRegion === 'all' ? dayRaces : dayRaces.filter(o => o.rec.region === resRecoRegion);
-
     const top3of = rec => [rec.result.first, rec.result.second, rec.result.third].filter(x => x != null);
-    // 점수제: 실제 1·2·3착 중 몇 개를 추천에 담았나 → 3개100·2개60·1개30·0개0점, 평균
     const scoreOf = k => k >= 3 ? 100 : k >= 2 ? 60 : k >= 1 ? 30 : 0;
     const cntIn = (recs, t3) => recs.reduce((c, n) => c + (t3.includes(n) ? 1 : 0), 0);
-    let bW = 0, bB = 0, bP = 0, eW = 0, eB = 0, eP = 0;  // win(상위3) 배팅(상위4) pick(상위6)
+    let bW=0,bB=0,bP=0,eW=0,eB=0,eP=0,cW=0,cB=0,cP=0;
     races.forEach(({ rec, pr }) => {
-      const t3 = top3of(rec), b = pr.ranked.map(h => h.no), e = (pr.expert || []);
-      bW += scoreOf(cntIn(b.slice(0,3), t3)); bB += scoreOf(cntIn(b.slice(0,4), t3)); bP += scoreOf(cntIn(b.slice(0,6), t3));
-      eW += scoreOf(cntIn(e.slice(0,3), t3)); eB += scoreOf(cntIn(e.slice(0,4), t3)); eP += scoreOf(cntIn(e.slice(0,6), t3));
+      const t3 = top3of(rec), b = pr.ranked.map(h => h.no), e = (pr.expert || []), cm = combinedPicks(pr, 6);
+      bW+=scoreOf(cntIn(b.slice(0,3),t3)); bB+=scoreOf(cntIn(b.slice(0,4),t3)); bP+=scoreOf(cntIn(b.slice(0,6),t3));
+      eW+=scoreOf(cntIn(e.slice(0,3),t3)); eB+=scoreOf(cntIn(e.slice(0,4),t3)); eP+=scoreOf(cntIn(e.slice(0,6),t3));
+      cW+=scoreOf(cntIn(cm.slice(0,3),t3)); cB+=scoreOf(cntIn(cm.slice(0,4),t3)); cP+=scoreOf(cntIn(cm.slice(0,6),t3));
     });
     const N = races.length, avg = s => N ? Math.round(s / N) : 0;
-    const dateChips = `<div class="date-row" id="recoDates">${dates.map(d => {
-      const mock = byDate[d][0].rec.mode === 'mock';
-      return `<button class="date-chip ${d===resRecoDate?'active':''}" data-rd="${d}">${fmtMD(d)} <span class="muted" style="font-weight:600">${mock?'모의':'실전'}</span></button>`;
-    }).join('')}</div>`;
     const regSel = regions.length > 1 ? `<select id="recoRegion" class="inp" style="max-width:170px;margin:0 0 12px">
       <option value="all" ${resRecoRegion==='all'?'selected':''}>전체 지역</option>
       ${regions.map(rg => `<option value="${rg}" ${resRecoRegion===rg?'selected':''}>${rg}</option>`).join('')}</select>` : '';
@@ -24637,31 +24710,31 @@ route('results', () => {
     const chips = (recs, t3, n) => recs.slice(0, n).map(no => `<span class="rchip ${t3.includes(no) ? 'hit' : ''}">${no}</span>`).join('');
     const scoreTag = (recs, t3) => { const k = cntIn(recs, t3); return `<b>${scoreOf(k)}점</b> <span class="muted">(${k}/3)</span>`; };
     rb.innerHTML = `
-      ${dateChips}
+      ${calendar(dset, resRecoDate)}
       ${regSel}
-      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate}${resRecoRegion==='all'?'':' · '+resRecoRegion} · <b>${N}경주</b> 평균 · 실제 1·2·3착 중 담은 수 → 3개100·2개60·1개30점. <b style="color:var(--amber)">win·배팅점수</b>가 핵심!</div>
+      <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate}${resRecoRegion==='all'?'':' · '+resRecoRegion} · <b>${N}경주</b> 평균 · 실제 1·2·3착 중 담은 수 → 3개100·2개60·1개30점</div>
       ${accCard('🧠', '브레인', bW, bB, bP)}
       ${accCard('📰', '전문가', eW, eB, eP)}
+      ${accCard('🎯', '종합', cW, cB, cP)}
       <div class="section-t">경주별 상세</div>
       ${races.map(({ rec, pr }) => {
-        const t3 = top3of(rec), b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6);
+        const t3 = top3of(rec), b6 = pr.ranked.slice(0, 6).map(h => h.no), e6 = (pr.expert || []).slice(0, 6), c6 = combinedPicks(pr, 6);
         return `<div class="card" style="margin-bottom:10px">
           <div class="row between" style="margin-bottom:8px"><b>${esc(rec.label)}</b><span class="muted" style="font-size:12px">착순 ${t3.join('·')}</span></div>
           <div class="reco-row"><span class="reco-src">🧠 브레인</span><div class="reco-chips">${chips(b6, t3, 6)}</div></div>
           <div class="reco-tags">win ${scoreTag(b6.slice(0,3), t3)} · 배팅 ${scoreTag(b6.slice(0,4), t3)} · pick ${scoreTag(b6, t3)}</div>
           <div class="reco-row" style="margin-top:8px"><span class="reco-src">📰 전문가</span><div class="reco-chips">${chips(e6, t3, 6)}</div></div>
           <div class="reco-tags">win ${scoreTag(e6.slice(0,3), t3)} · 배팅 ${scoreTag(e6.slice(0,4), t3)} · pick ${scoreTag(e6, t3)}</div>
+          <div class="reco-row" style="margin-top:8px"><span class="reco-src">🎯 종합</span><div class="reco-chips">${chips(c6, t3, 6)}</div></div>
+          <div class="reco-tags">win ${scoreTag(c6.slice(0,3), t3)} · 배팅 ${scoreTag(c6.slice(0,4), t3)} · pick ${scoreTag(c6, t3)}</div>
         </div>`;
       }).join('')}`;
-    rb.querySelectorAll('[data-rd]').forEach(b => b.onclick = () => { resRecoDate = b.dataset.rd; resRecoRegion = 'all'; renderReco(); });
+    rb.querySelectorAll('[data-cal]').forEach(b => b.onclick = () => { resRecoDate = b.dataset.cal; resRecoRegion = 'all'; renderReco(); });
+    rb.querySelectorAll('[data-cm]').forEach(b => b.onclick = () => { if (b.dataset.cm) { resRecoMonth = b.dataset.cm; renderReco(); } });
     const rsel = $('#recoRegion', rb); if (rsel) rsel.onchange = () => { resRecoRegion = rsel.value; renderReco(); };
   }
-
-  $('#modeTabs', body).addEventListener('click', e => { const m=e.target.closest('[data-m]'); if(!m)return; resMode=m.dataset.m; resOpen=null;
-    body.querySelectorAll('#modeTabs .tab').forEach(x=>x.classList.toggle('active',x===m)); render2(); });
-  rb.addEventListener('click', e => { const b=e.target.closest('[data-enter2]'); if(b) go('result',{q:'id='+b.dataset.enter2}); });
-  resView === 'reco' ? renderReco() : render2();
-  return shell({ title: '결과분석', sub: '내 배팅 성적 · 추천 적중률', tab: 'results', body });
+  renderReco();
+  return shell({ title: '추천 적중률', tab: 'results', body });
 });
 
 /* =========================================================
