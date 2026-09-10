@@ -519,8 +519,11 @@ select.inp { appearance: none; background-image: none; }
 .cal-cell.nodata { color: var(--muted); opacity: .4; }
 .cal-cell.has { color: var(--text); cursor: pointer; background: rgba(230,172,92,.08); }
 .cal-cell.sel { background: var(--grad-amber); color: #2a1a0c; }
-.cal-dot { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 999px; background: var(--amber); }
+.cal-dot { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 999px; background: var(--amber); }
+.cal-dot.real { background: var(--up); }    /* 실전 = 초록 */
+.cal-dot.mock { background: var(--amber); }  /* 모의 = 앰버 */
 .cal-cell.sel .cal-dot { background: #2a1a0c; }
+.calbox .cal { margin-bottom: 0; }
 .btr.hit { color: var(--text); }
 .race-sum { display: flex; justify-content: space-between; padding-top: 11px; font-size: 14px; font-weight: 800; }
 
@@ -24650,7 +24653,7 @@ route('results', () => {
     });
     return out;
   }
-  function calendar(dset, selected) {
+  function calendar(dset, selected, dmode) {
     const months = [...new Set([...dset].map(d => d.slice(0,7)))].sort();
     if (!resRecoMonth || !months.includes(resRecoMonth)) resRecoMonth = selected.slice(0,7);
     const [Y, M] = resRecoMonth.split('-').map(Number);
@@ -24662,13 +24665,14 @@ route('results', () => {
     for (let i=0;i<startDow;i++) cells += `<div class="cal-cell empty"></div>`;
     for (let d=1; d<=dim; d++) {
       const ds = `${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const has = dset.has(ds), sel = ds===selected;
-      cells += `<div class="cal-cell ${has?'has':'nodata'} ${sel?'sel':''}" ${has?`data-cal="${ds}"`:''}>${d}${has?'<span class="cal-dot"></span>':''}</div>`;
+      const has = dset.has(ds), sel = ds===selected, mk = dmode[ds] === 'mock';
+      cells += `<div class="cal-cell ${has?'has':'nodata'} ${sel?'sel':''}" ${has?`data-cal="${ds}"`:''}>${d}${has?`<span class="cal-dot ${mk?'mock':'real'}"></span>`:''}</div>`;
     }
-    return `<div class="cal">
-      <div class="cal-head"><button class="cal-nav" data-cm="${prevM}" ${prevM?'':'disabled'}>‹</button>
+    return `<details class="valbox calbox" open style="padding:10px 12px">
+      <summary><b style="font-size:14px">📅 회차 선택</b><span class="muted" style="font-size:11px;margin-left:6px"><span class="cal-dot real" style="position:static;display:inline-block;vertical-align:middle"></span> 실전 <span class="cal-dot mock" style="position:static;display:inline-block;vertical-align:middle;margin-left:6px"></span> 모의</span></summary>
+      <div class="cal-head" style="margin-top:8px"><button class="cal-nav" data-cm="${prevM}" ${prevM?'':'disabled'}>‹</button>
         <b>${Y}년 ${M}월</b><button class="cal-nav" data-cm="${nextM}" ${nextM?'':'disabled'}>›</button></div>
-      <div class="cal-grid">${['일','월','화','수','목','금','토'].map(w=>`<div class="cal-dow">${w}</div>`).join('')}${cells}</div></div>`;
+      <div class="cal-grid">${['일','월','화','수','목','금','토'].map(w=>`<div class="cal-dow">${w}</div>`).join('')}${cells}</div></details>`;
   }
   function renderReco() {
     const all = recoRaces();
@@ -24680,6 +24684,7 @@ route('results', () => {
     const byDate = {};
     all.forEach(o => { (byDate[o.rec.date] = byDate[o.rec.date] || []).push(o); });
     const dset = new Set(Object.keys(byDate));
+    const dmode = {}; Object.keys(byDate).forEach(d => dmode[d] = byDate[d][0].rec.mode);
     const dates = [...dset].sort((a, b) => a < b ? 1 : -1);
     if (!resRecoDate || !dset.has(resRecoDate)) resRecoDate = dates[0];
     const dayRaces = byDate[resRecoDate];
@@ -24710,7 +24715,7 @@ route('results', () => {
     const chips = (recs, t3, n) => recs.slice(0, n).map(no => `<span class="rchip ${t3.includes(no) ? 'hit' : ''}">${no}</span>`).join('');
     const scoreTag = (recs, t3) => { const k = cntIn(recs, t3); return `<b>${scoreOf(k)}점</b> <span class="muted">(${k}/3)</span>`; };
     rb.innerHTML = `
-      ${calendar(dset, resRecoDate)}
+      ${calendar(dset, resRecoDate, dmode)}
       ${regSel}
       <div class="muted" style="font-size:12px;margin:0 2px 10px;line-height:1.5">${resRecoDate}${resRecoRegion==='all'?'':' · '+resRecoRegion} · <b>${N}경주</b> 평균 · 실제 1·2·3착 중 담은 수 → 3개100·2개60·1개30점</div>
       ${accCard('🧠', '브레인', bW, bB, bP)}
