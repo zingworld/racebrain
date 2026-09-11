@@ -227,21 +227,21 @@ select.inp { appearance: none; background-image: none; }
 /* ------- 통계 카드 ------- */
 .hero {
   background: var(--grad-brown); border: 1px solid var(--line);
-  border-radius: var(--radius); padding: 18px; overflow: hidden; position: relative;
+  border-radius: var(--radius); padding: 13px 15px; overflow: hidden; position: relative;
 }
 .hero .glowline { position:absolute; inset:0; background: var(--grad-amber); opacity:.06; }
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 4px; }
 /* 반원 회수율 게이지 */
-.gauge-row { display: flex; align-items: center; gap: 18px; margin: 4px 0 14px; }
-.gauge-circle { flex: 0 0 auto; width: 132px; }
+.gauge-row { display: flex; align-items: center; gap: 16px; margin: 0 0 10px; }
+.gauge-circle { flex: 0 0 auto; width: 152px; }
 .gauge-side { flex: 1; min-width: 0; }
 .gs-label { font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
-.gs-amt { font-size: 24px; font-weight: 900; line-height: 1.15; word-break: break-all; }
+.gs-amt { font-size: 25px; font-weight: 900; line-height: 1.15; word-break: break-all; }
 .gs-amt.hi { color: var(--up); } .gs-amt.mid { color: var(--text-2); } .gs-amt.lo { color: var(--down); }
 .stat-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.gstat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 12px 14px; text-align: center; }
-.gstat .k { font-size: 12px; color: var(--muted); font-weight: 700; }
-.gstat .v { font-size: 17px; font-weight: 900; margin-top: 3px; }
+.gstat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 12px; text-align: center; }
+.gstat .k { font-size: 11px; color: var(--muted); font-weight: 700; }
+.gstat .v { font-size: 16px; font-weight: 900; margin-top: 2px; }
 .stat {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius-sm); padding: 15px 15px 14px;
@@ -24514,11 +24514,12 @@ route('mybets', () => {
     });
     return { races: recs.length, bet, payout, net: payout - bet, roi: bet ? Math.round(payout / bet * 100) : 0, hits, entries, settled };
   }
-  // 원형 다중 링 게이지: 100%마다 링이 한 겹씩 늘며 채워짐
+  // 원형 다중 링 게이지: 100%마다 링이 한 겹씩 늘며 채워짐 (최대 3겹)
   function gaugeSVG(roi) {
-    const cx = 90, cy = 90, baseR = 30, gap = 12, sw = 8, maxRings = 4;
-    const col = roi >= 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
+    const cx = 90, cy = 90, maxRings = 3, gap = 15, sw = 11;
     const bands = Math.min(maxRings, Math.max(1, Math.ceil(roi / 100)));
+    const outerR = 78, baseR = outerR - (bands - 1) * gap;   // 겹 수 상관없이 바깥은 크게
+    const col = roi >= 100 ? 'var(--up)' : roi >= 50 ? 'var(--amber)' : 'var(--down)';
     let rings = '';
     for (let b = 0; b < bands; b++) {
       const r = baseR + b * gap, C = 2 * Math.PI * r;
@@ -24529,7 +24530,7 @@ route('mybets', () => {
           stroke-dasharray="${dash} ${(C - dash).toFixed(1)}" transform="rotate(-90 ${cx} ${cy})"/>`;
     }
     const digits = String(roi).length;
-    const fs = digits >= 5 ? 22 : digits >= 4 ? 26 : 30;
+    const fs = digits >= 5 ? 34 : digits >= 4 ? 40 : 46;
     return `<svg viewBox="0 0 180 180" width="100%" style="display:block">
       ${rings}
       <text x="90" y="90" text-anchor="middle" dominant-baseline="central" font-size="${fs}" font-weight="800" fill="var(--text)">${roi}<tspan font-size="${Math.round(fs*0.5)}">%</tspan></text>
